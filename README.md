@@ -10,14 +10,12 @@ video gate and a Spine Score.
 It's a self-contained static site — no build step.
 
 ```bash
-# any static server, e.g.
-npx serve .
-# or
-python3 -m http.server 8000
+npm start          # → npx serve .
+# or any static server: python3 -m http.server 8000
 ```
 
 Then open the served URL. (Opening `index.html` directly via `file://` won't work
-because the runtime fetches the `.jsx`/asset files over HTTP.)
+because the runtime fetches its assets over HTTP.)
 
 ## Structure
 
@@ -29,11 +27,11 @@ assets/         pose imagery (WebP): stand · sit · lift · walk · sleep · wa
 
 ## Notes
 
-- Authored for a **390 × 844** phone viewport.
-- Loads React, Babel and fonts from CDN, so it needs network on first load.
+- Authored for a **390 × 844** phone viewport; no mock status bar (uses the device's own).
+- Self-contained runtime (`support.js`); only fonts load from CDN.
+- Pose imagery is WebP, 780 px (2×), ~40 KB each.
 - The educational clip is a **mandatory gate**: the first screen is clean, and
   the clip must be watched before advancing past step 1. The ⓘ button (right
   edge) opens dismissable replay clips.
-- Pose images are WebP-optimised (~50 KB each).
 
 Spine Severity scoring follows Dr. Ayush Sharma's Spine Severity System (SSS).

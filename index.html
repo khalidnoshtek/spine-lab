@@ -1,8 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spine Lab</title>
+<meta name="description" content="An interactive spine-health assessment — map how your daily habits load your spine and get your Spine Score." />
+<meta name="theme-color" content="#02030a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Spine Lab" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%2302030a'/%3E%3Cg fill='%236fe0ff'%3E%3Crect x='9' y='3' width='6' height='2.4' rx='1.2'/%3E%3Crect x='8.4' y='6.4' width='7.2' height='2.6' rx='1.3'/%3E%3Crect x='8.1' y='9.8' width='7.8' height='2.7' rx='1.35'/%3E%3Crect x='8.1' y='13.2' width='7.8' height='2.7' rx='1.35'/%3E%3Crect x='8.4' y='16.6' width='7.2' height='2.6' rx='1.3'/%3E%3Crect x='9' y='20' width='6' height='2.4' rx='1.2'/%3E%3C/g%3E%3C/svg%3E" />
 <script src="./support.js"></script>
 </head>
 <body>
@@ -49,14 +57,8 @@
     </div>
 
     <!-- TOP HUD -->
-    <div style="position:absolute;left:0;right:0;top:0;padding:14px 24px 0;">
-      <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:500;letter-spacing:.3px;color:#cfe0f5;">
-        <span>9:41</span>
-        <span style="display:flex;gap:6px;align-items:center;opacity:.85;font-size:11px;">SPINEVERSE
-          <span style="width:22px;height:11px;border:1px solid rgba(207,224,245,.6);border-radius:3px;display:inline-block;position:relative;"><span style="position:absolute;inset:1.5px;width:70%;background:#cfe0f5;border-radius:1px;"></span></span>
-        </span>
-      </div>
-      <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
+    <div style="position:absolute;left:0;right:0;top:0;padding:20px 24px 0;">
+      <div style="display:flex;align-items:center;gap:12px;">
         <button onClick="{{ back }}" style="width:30px;height:30px;flex:none;border-radius:50%;border:1px solid rgba(120,180,255,.22);background:rgba(10,28,56,.5);color:#bcd4f0;font-size:15px;cursor:pointer;opacity:{{ backOpacity }};">‹</button>
         <div style="flex:1;">
           <div style="display:flex;justify-content:space-between;font-size:10px;letter-spacing:2px;color:#7e96b8;text-transform:uppercase;margin-bottom:6px;">
