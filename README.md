@@ -13,11 +13,20 @@ npm start          # → npx serve .
 
 Open the served URL (not `file://` — assets load over HTTP).
 
-## Flow (video-led)
+## What it is
 
-`Intro video → Connect health device → About you → 6 SSS steps → Daily habits → Score`
+A complete app: a **video-led onboarding assessment** → a **persistent home that
+auto-tracks daily habits** from a connected health device → **points & a
+redeemable rewards store**. State persists in `localStorage`.
 
-Each step pairs a short explainer video with exactly the data the SSS chart collects.
+**Onboarding (video-gated):**
+`Intro → Connect device → About you → 6 SSS steps → Score`
+Each step opens a **5-second clip that locks the form until watched**, then pairs
+with exactly the data the SSS chart collects. Completing it earns points.
+
+**Home (after onboarding):** Today (Spine Score + daily habit rings with pose
+visuals, auto-synced from the device, streaks, points), **Rewards** (redeem
+points for real perks), **Profile** (summary, retake, doctor links).
 
 ## The 6-step SSS score (0–11)
 
