@@ -158,7 +158,7 @@
   .reward.got{opacity:.7}.reward.got .rc{background:rgba(52,211,153,.18);color:var(--green)}
 
   /* tab bar */
-  .tabbar{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(3,1fr);background:rgba(4,12,28,.9);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  .tabbar{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(4,12,28,.9);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
   .tabbar button{background:0;border:0;color:var(--mut2);font-family:inherit;font-size:10.5px;font-weight:600;padding:11px 0 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
   .tabbar button .ti{font-size:19px}.tabbar button.on{color:var(--cyan)}
 
@@ -208,7 +208,7 @@ const todayStr=()=>new Date().toISOString().slice(0,10)
 let S = load()
 function load(){ try{const s=JSON.parse(localStorage.getItem(KEY)); if(s)return s}catch(e){}
   return { onboarded:false, points:0, streak:0, lastSync:null, device:null, redeemed:[],
-    profile:null, today:null, history:[] } }
+    profile:null, today:null, history:[], planDone:[] } }
 function save(){ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} }
 
 /* onboarding working data */
@@ -352,7 +352,7 @@ const STEPS=[
     init:()=>{ const t=sssTotal(),sv=severity(t),ring=document.getElementById('rring'),num=document.getElementById('rnum')
       requestAnimationFrame(()=>{ring.style.transition='stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)';ring.style.strokeDashoffset=326-(t/11)*326})
       let n=0;const iv=setInterval(()=>{n++;if(n>=t){n=t;clearInterval(iv)}num.textContent=n},90) },
-    cta:'Start daily tracking →',next:'__finish'},
+    cta:'See my next steps →',next:'__finish'},
 ]
 
 /* ════════════ FLOW ENGINE (onboarding) ════════════ */
@@ -385,7 +385,7 @@ function finishOnboarding(){
   S.lastSync=todayStr(); S.streak=Math.max(1,S.streak)
   const firstTime=!S._awarded; S._awarded=true; save()
   if(firstTime) award(200,'Assessment complete')      // +200 once (award handles save + toast)
-  renderApp('today')
+  renderApp('plan')
 }
 
 /* ════════════ MAIN APP (post-onboard) ════════════ */
@@ -393,13 +393,14 @@ let tab='today'
 function appShell(inner,active){
   return `<div class="hud"><div class="logo"><svg width="22" height="22" viewBox="0 0 24 24"><g fill="#6fe0ff"><rect x="9" y="3" width="6" height="2.4" rx="1.2"/><rect x="8.4" y="6.4" width="7.2" height="2.6" rx="1.3"/><rect x="8.1" y="9.8" width="7.8" height="2.7" rx="1.35"/><rect x="8.1" y="13.2" width="7.8" height="2.7" rx="1.35"/></g><g fill="#ffb020"><rect x="9" y="16.8" width="6" height="2.5" rx="1.25"/><rect x="9" y="20" width="6" height="2.4" rx="1.2"/></g></svg>BackSignal</div><div class="pts">✦ ${S.points}</div></div>
     <div class="scroll" id="scroll" style="padding-bottom:96px">${inner}</div>
-    <div class="tabbar">${[['today','🏠','Today'],['rewards','🎁','Rewards'],['profile','👤','Profile']].map(([k,i,l])=>`<button data-tab="${k}" class="${active===k?'on':''}"><span class="ti">${i}</span>${l}</button>`).join('')}</div>` }
+    <div class="tabbar">${[['today','🏠','Today'],['plan','🧭','Plan'],['rewards','🎁','Rewards'],['profile','👤','Profile']].map(([k,i,l])=>`<button data-tab="${k}" class="${active===k?'on':''}"><span class="ti">${i}</span>${l}</button>`).join('')}</div>` }
 function renderApp(t){ tab=t||tab
   if(tab==='today')root.innerHTML=appShell(viewToday(),'today')
+  else if(tab==='plan')root.innerHTML=appShell(viewPlan(),'plan')
   else if(tab==='rewards')root.innerHTML=appShell(viewRewards(),'rewards')
   else root.innerHTML=appShell(viewProfile(),'profile')
   root.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>renderApp(b.dataset.tab))
-  if(tab==='today')initToday(); if(tab==='rewards')initRewards(); if(tab==='profile')initProfile()
+  if(tab==='today')initToday(); else if(tab==='plan')initPlan(); else if(tab==='rewards')initRewards(); else initProfile()
 }
 function habitStatus(k,v){ const tgt=TARGETS[k]
   if(k==='sitting')return {ok:v<=tgt,pct:Math.min(100,(tgt/Math.max(v,1))*100),col:v<=tgt?'var(--green)':v<=tgt+2?'var(--amber)':'var(--red)'}
@@ -453,6 +454,46 @@ function viewProfile(){
 function initProfile(){ $('retake').onclick=()=>{ D={age:S.profile.age,sex:S.profile.sex,occupation:S.profile.occupation,height:S.profile.height,weight:S.profile.weight,vas:null,sciatica:null,odi:{Walking:0,Sitting:0,Standing:0,Sleep:0,'Daily activities':0},chronicity:null,redflags:[],habits:{sitting:8,walking:30,exercise:2,sleep:7}}; watched={}; STEPS.forEach(s=>s._auto=false); idx=STEPS.findIndex(s=>s.id==='vas'); renderStep() }
   $('reset').onclick=()=>{ localStorage.removeItem(KEY); location.reload() } }
 function greetWord(){ const h=new Date().getHours(); return h<12?'Good morning':h<18?'Good afternoon':'Good evening' }
+
+/* ── PLAN (next steps, grounded in SSS management bands + Daily-Habit guidance) ── */
+function planData(){
+  const p=S.profile, sv=severity(p.sssScore), t=S.today||{}
+  const clinical={
+    'LOW':{t:'Self-care plan',d:'Your score is low — keep it that way with good posture, daily movement and exercise. Re-check in about 4 weeks.'},
+    'MILD–MODERATE':{t:'Physiotherapy + habit correction',d:'Begin guided physiotherapy and correct the daily habits below. Get a clinical evaluation if there’s no improvement in 2 weeks.'},
+    'MODERATE–SEVERE':{t:'See a spine specialist',d:'Your score suggests a spine-specialist consultation for proper assessment and advanced care.'},
+    'SEVERE / HIGH RISK':{t:'Urgent specialist care',d:'Seek urgent spine-specialist evaluation now — please don’t wait on this.'},
+  }[sv.band]
+  const acts=[]
+  const add=(id,emoji,title,why,met)=>acts.push({id,emoji,title,why,met})
+  if(t.sitting!=null)  add('sit','🪑','Stand or walk 2–3 min every 30 min','Prolonged sitting raises lumbar disc pressure, weakens the core and collapses posture.', t.sitting<=TARGETS.sitting)
+  if(t.walking!=null)  add('walk','🚶','Build toward 45 minutes of walking a day','Low walking reduces spinal mobility and endurance.', t.walking>=TARGETS.walking)
+  if(t.exercise!=null) add('ex','🏋️','Core & back strengthening, 3×/week','Lack of exercise weakens the muscles that support the spine.', t.exercise>=TARGETS.exercise)
+  if(t.sleep!=null)    add('sleep','😴','Aim for 7–8 hours of sleep','Poor sleep increases inflammation and delays recovery.', t.sleep>=TARGETS.sleep)
+  const notes=[]
+  if((p.sciatica||0)>=2) notes.push('Leg pain or numbness: avoid prolonged bending and heavy strain. If it worsens or affects walking, see a specialist.')
+  if(p.chronicity==='chronic') notes.push('Pain lasting over 6 weeks responds better to a structured program than to rest — stay active within comfort.')
+  if((p.vas||0)>=7) notes.push('High pain right now: short-term relief plus gentle movement; avoid prolonged bed rest.')
+  return {sv,clinical,acts,notes,redflag:hasRedFlag()}
+}
+function viewPlan(){
+  const d=planData(); S.planDone=S.planDone||[]
+  return `<div class="eyebrow">Your next steps</div><h1 class="q" style="font-size:22px">A plan for your lower back</h1>
+    ${d.redflag?`<div class="warn" style="margin-top:14px">⚠ A red flag was indicated — please seek <b>urgent spine-specialist evaluation</b> before following the rest of this plan.</div>`:''}
+    <div class="mgmt" style="background:${d.sv.color}14;border:1px solid ${d.sv.color}40;margin-top:14px"><b>${d.clinical.t}</b><br/><span style="color:var(--mut)">${d.clinical.d}</span>
+      ${d.sv.band==='LOW'?'':`<button class="cta" id="findcare" style="margin-top:12px">Find care / book →</button>`}</div>
+    <div class="card"><h3>Correct your daily habits</h3>
+      ${d.acts.map(a=>{const done=S.planDone.includes(a.id),ok=a.met||done;return `<div class="flag ${ok?'on':''}" data-act="${a.id}" style="${a.met?'border-color:rgba(52,211,153,.35)':''}"><span class="bx" style="${ok?'background:var(--green);border-color:var(--green)':''}">${ok?'✓':''}</span><div><div style="font-size:13px;font-weight:600">${a.emoji} ${a.title}</div><div style="font-size:11.5px;color:var(--mut2);margin-top:3px;line-height:1.45">${a.met?'You’re already on target — keep it up.':a.why}</div></div></div>`}).join('')}</div>
+    ${d.notes.length?`<div class="card"><h3>Notes for your symptoms</h3>${d.notes.map(n=>`<p class="sub" style="margin-top:8px">• ${n}</p>`).join('')}</div>`:''}
+    <div class="card" style="background:rgba(56,189,248,.06)"><p class="sub" style="margin-top:0;color:#c2d6ef">Most chronic back pain develops from unhealthy habits repeated daily. Early lifestyle correction can prevent long-term spine degeneration and disability.</p><div style="font-size:11px;color:var(--mut2);margin-top:8px">— ${APP.doctor}, Spine Severity System</div></div>
+    <div class="trust" style="border:0"><a href="${APP.links.website}" target="_blank" rel="noopener">Website</a> · <a href="${APP.links.youtube}" target="_blank" rel="noopener">Exercise videos</a> · <a href="${APP.links.research}" target="_blank" rel="noopener">Research</a></div>`
+}
+function initPlan(){
+  S.planDone=S.planDone||[]
+  root.querySelectorAll('[data-act]').forEach(el=>el.onclick=()=>{ const id=el.dataset.act, a=planData().acts.find(x=>x.id===id)
+    if(!a||a.met||S.planDone.includes(id))return; S.planDone.push(id); save(); award(15,'Step committed'); renderApp('plan') })
+  const fc=$('findcare'); if(fc)fc.onclick=()=>window.open(APP.links.website,'_blank')
+}
 
 /* ── boot ── */
 if(S.onboarded&&S.profile){ Object.assign(D,S.profile); renderApp('today') } else { idx=0; renderStep() }
