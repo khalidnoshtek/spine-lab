@@ -24,9 +24,16 @@ redeemable rewards store**. State persists in `localStorage`.
 Each step opens a **5-second clip that locks the form until watched**, then pairs
 with exactly the data the SSS chart collects. Completing it earns points.
 
-**Home (after onboarding):** Today (Spine Score + daily habit rings with pose
-visuals, auto-synced from the device, streaks, points), **Rewards** (redeem
-points for real perks), **Profile** (summary, retake, doctor links).
+**Home (after onboarding):** **Today** (Spine Score, adaptive daily **spine-health
+tasks** that fire themed confetti and slide out as new ones slide in, habit cards
+with pose visuals auto-synced from the device, streaks, points, and a weekly
+**insights** panel — walking / sitting / sleep sparklines with a plain-English
+read-out), **Plan** (grounded next-steps), **Rewards** (redeem points for real
+perks), **Profile** (summary, retake, doctor links).
+
+**Connect a device** (Apple Health / Google Fit / Fitbit, themed brand marks) to
+**auto-populate** your name and basics and keep habits updated. The whole app uses
+theme-matched line icons (no emoji) and fluid staggered entrance animations.
 
 ## The 6-step SSS score (0–11)
 

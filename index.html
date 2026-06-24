@@ -28,10 +28,20 @@
     background:radial-gradient(125% 80% at 50% 4%,var(--bg2) 0%,var(--bg1) 34%,#020c1e 64%,var(--bg0) 100%);overflow:hidden}
   #app{position:relative;width:100%;max-width:430px;height:100dvh;margin:0 auto;overflow:hidden;display:flex;flex-direction:column}
   ::-webkit-scrollbar{width:0;height:0}
+  svg.ic{display:inline-block;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  svg.ic.f{fill:currentColor;stroke:none}
 
-  /* top chrome */
+  /* entrance animations */
+  @keyframes enterUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  @keyframes pop{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+  @keyframes slideInL{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:none}}
+  @keyframes slideOutR{to{opacity:0;transform:translateX(120%);height:0;margin:0;padding:0;border-width:0}}
+  @keyframes float{0%,100%{transform:translateY(-5px)}50%{transform:translateY(5px)}}
+  @keyframes glow{0%,100%{opacity:.5}50%{opacity:.85}}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important}}
+
   .hud{flex:none;padding:15px 20px 8px;display:flex;align-items:center;gap:10px}
-  .hud .bk{background:rgba(10,28,56,.6);border:1px solid var(--line);color:#bcd4f0;width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;flex:none;display:none}
+  .hud .bk{background:rgba(10,28,56,.6);border:1px solid var(--line);color:#bcd4f0;width:30px;height:30px;border-radius:50%;cursor:pointer;flex:none;display:none;align-items:center;justify-content:center}
   .hud .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
   .hud .logo svg{filter:drop-shadow(0 0 8px rgba(95,208,255,.5))}
   .hud .cert{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:10px;color:var(--cyan);background:rgba(56,189,248,.1);border:1px solid rgba(95,208,255,.28);padding:4px 9px;border-radius:99px;font-weight:600}
@@ -41,6 +51,8 @@
   .steplbl{flex:none;padding:8px 20px 0;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mut2);display:flex;justify-content:space-between}
 
   .scroll{flex:1;overflow-y:auto;padding:8px 20px 150px;-webkit-overflow-scrolling:touch}
+  .scroll.app{padding-bottom:96px}
+  .scroll>*{animation:enterUp .5s both cubic-bezier(.2,.8,.2,1)}
   .eyebrow{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);font-weight:600}
   h1.q{font-size:23px;font-weight:600;line-height:1.18;margin-top:6px;letter-spacing:-.2px}
   p.sub{font-size:13px;color:var(--mut);line-height:1.5;margin-top:8px}
@@ -51,16 +63,12 @@
   .cta:active{transform:scale(.985)} .cta:disabled{opacity:.4;cursor:not-allowed}
   .cta.sec{background:transparent;color:var(--mut);border:1px solid var(--line);margin-top:9px}
 
-  /* form lock overlay */
-  .locked{position:relative}
-  .locked .lockmsg{margin-top:14px;display:flex;align-items:center;gap:9px;background:rgba(56,189,248,.08);border:1px solid rgba(95,208,255,.28);border-radius:13px;padding:13px;font-size:12.5px;color:var(--cyan)}
   .gatewrap.gated{filter:blur(5px);opacity:.45;pointer-events:none;user-select:none}
+  .lockmsg{margin-top:14px;display:flex;align-items:center;gap:9px;background:rgba(56,189,248,.08);border:1px solid rgba(95,208,255,.28);border-radius:13px;padding:13px;font-size:12.5px;color:var(--cyan)}
 
-  /* video card / player */
   .vcard{margin-top:16px;display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:11px 13px;cursor:pointer;transition:border-color .2s}
   .vcard:active{border-color:var(--cyan)}
-  .vcard .thumb{position:relative;width:48px;height:62px;flex:none;border-radius:10px;overflow:hidden;background:radial-gradient(120% 80% at 50% 0,#0d3a6e,#04132b)}
-  .vcard .thumb .pl{position:absolute;inset:0;display:grid;place-items:center;font-size:14px;color:#fff}
+  .vcard .thumb{position:relative;width:48px;height:62px;flex:none;border-radius:10px;overflow:hidden;background:radial-gradient(120% 80% at 50% 0,#0d3a6e,#04132b);display:grid;place-items:center;color:#fff}
   .vcard .meta b{display:block;font-size:13px;font-weight:600} .vcard .meta span{font-size:11px;color:var(--mut2)}
   .vcard .yt{margin-left:auto;font-size:9px;letter-spacing:1px;color:var(--mut2);text-transform:uppercase}
   .vcard.done{border-color:rgba(52,211,153,.4)} .vcard.done .yt{color:var(--green)}
@@ -68,7 +76,7 @@
   .pmask{position:fixed;inset:0;z-index:60;background:rgba(2,8,20,.85);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:18px}
   .pmask.show{display:flex}
   .pwrap{position:relative;width:100%;max-width:300px}
-  .pX{position:absolute;top:8px;right:8px;z-index:4;width:30px;height:30px;border-radius:50%;border:0;background:rgba(2,10,24,.6);color:#cfe0f5;font-size:13px;cursor:pointer;display:none;backdrop-filter:blur(4px)}
+  .pX{position:absolute;top:8px;right:8px;z-index:4;width:30px;height:30px;border-radius:50%;border:0;background:rgba(2,10,24,.6);color:#cfe0f5;cursor:pointer;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
   .pscreen{position:relative;width:100%;aspect-ratio:9/16;border-radius:20px;overflow:hidden;background:radial-gradient(120% 80% at 50% 6%,#0d3a6e,#04132b 72%);border:1px solid var(--line)}
   .pscreen iframe{width:100%;height:100%;border:0;display:block}
   .pscreen .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px 22px}
@@ -78,101 +86,114 @@
   .pbar{height:3px;border-radius:99px;background:rgba(255,255,255,.14);margin:12px 2px 0;overflow:hidden}.pbar i{display:block;height:100%;width:0;background:var(--cyan);transition:width .1s linear}
   .ptime{text-align:center;font-size:10.5px;color:var(--mut2);margin-top:7px}
 
-  /* inputs */
   .field{margin-top:14px}.field label{font-size:12px;color:var(--mut)}
   .field input,.field select{width:100%;margin-top:6px;background:rgba(10,26,50,.6);border:1px solid var(--line);border-radius:13px;padding:13px 14px;color:#fff;font-family:inherit;font-size:15px;outline:none}
   .field input:focus{border-color:var(--cyan)}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .prefill{font-size:10.5px;color:var(--green);margin-top:5px;display:flex;align-items:center;gap:5px}
   .chips{display:grid;gap:9px;margin-top:14px}.chips.two{grid-template-columns:1fr 1fr}
-  .chip{border:1px solid var(--line);background:rgba(12,28,54,.6);color:#cfe0f5;border-radius:13px;padding:13px 14px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;text-align:left;transition:all .16s}
+  .chip{border:1px solid var(--line);background:rgba(12,28,54,.6);color:#cfe0f5;border-radius:13px;padding:13px 14px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;text-align:left;transition:all .16s;display:flex;align-items:center;gap:10px}
+  .chip .ci{color:var(--cyan);flex:none}
   .chip b{display:block;font-size:11.5px;color:var(--mut2);font-weight:500;margin-top:3px}
   .chip.on{border-color:var(--cyan);background:linear-gradient(135deg,rgba(56,189,248,.2),rgba(56,189,248,.04));color:#fff}.chip.on b{color:var(--cyan)}
+
   .faces{display:flex;justify-content:space-between;gap:6px;margin-top:18px}
   .face{flex:1;border:1px solid var(--line);background:rgba(12,28,54,.5);border-radius:14px;padding:10px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .15s}
   .face svg{width:28px;height:28px}.face span{font-size:12px;font-weight:600;color:var(--mut)}.face.on{transform:translateY(-3px)}
   .vaslbl{text-align:center;margin-top:14px;font-size:14px;font-weight:600}
-  .odi{margin-top:16px;display:grid;gap:8px}.odirow{display:grid;grid-template-columns:1.1fr 2fr;align-items:center;gap:10px}.odirow .n{font-size:13.5px;color:#dbe8fa}
+
+  /* ODI — visual */
+  .odiring{display:grid;place-items:center;position:relative;margin:16px 0 6px}
+  .odiring .n{position:absolute;text-align:center}.odiring .n b{font-size:34px;font-weight:800}.odiring .n span{display:block;font-size:9px;letter-spacing:1.5px;color:var(--mut2);text-transform:uppercase}
+  .odi{display:grid;gap:9px}
+  .odirow{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 13px}
+  .odirow .hd{display:flex;align-items:center;gap:9px;font-size:13.5px;color:#dbe8fa;margin-bottom:9px}.odirow .hd .ci{color:var(--cyan)}
   .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
   .seg button{border:1px solid var(--line);background:rgba(12,28,54,.55);color:var(--mut);border-radius:10px;padding:9px 2px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:all .14s}
   .seg button.on{color:#02121f}.seg button.g.on{background:var(--green);border-color:var(--green)}.seg button.a.on{background:var(--amber);border-color:var(--amber)}.seg button.r.on{background:var(--red);border-color:var(--red);color:#fff}
-  .odisum{margin-top:12px;text-align:center;font-size:12.5px;color:var(--mut)}
+
   .flags{margin-top:14px;display:grid;gap:7px}
   .flag{display:flex;align-items:center;gap:11px;border:1px solid var(--line);background:rgba(12,28,54,.5);border-radius:12px;padding:11px 13px;cursor:pointer;font-size:13px;transition:all .15s}
-  .flag .bx{width:20px;height:20px;flex:none;border-radius:6px;border:1.5px solid var(--mut2);display:grid;place-items:center;font-size:12px;color:#02121f}
+  .flag .bx{width:20px;height:20px;flex:none;border-radius:6px;border:1.5px solid var(--mut2);display:grid;place-items:center;color:#02121f}
   .flag.on{border-color:var(--red);background:rgba(248,113,113,.12)}.flag.on .bx{background:var(--red);border-color:var(--red)}
   .warn{margin-top:12px;display:flex;gap:9px;align-items:flex-start;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.35);border-radius:13px;padding:12px 13px;font-size:12px;color:#ffd2d2;line-height:1.5}
   .tag{display:inline-block;font-size:11px;font-weight:700;padding:4px 11px;border-radius:99px}
 
-  /* device */
   .dev{display:flex;align-items:center;gap:13px;border:1px solid var(--line);background:rgba(12,28,54,.55);border-radius:14px;padding:14px;cursor:pointer;margin-top:10px;transition:all .15s}
-  .dev .di{font-size:22px;width:30px;text-align:center}.dev b{font-size:14px}.dev span{font-size:11.5px;color:var(--mut2);display:block}.dev .arr{margin-left:auto;color:var(--mut2)}
+  .dev:active{transform:scale(.99)}.dev .di{width:34px;height:34px;flex:none;display:grid;place-items:center}.dev b{font-size:14px}.dev span{font-size:11.5px;color:var(--mut2);display:block}.dev .arr{margin-left:auto;color:var(--mut2)}
   .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-right:6px}
   @keyframes spin{to{transform:rotate(360deg)}}
   .synced{display:flex;align-items:center;gap:6px;color:var(--green);font-size:12.5px;font-weight:600;margin:14px 0 4px}
   .srow{display:flex;justify-content:space-between;font-size:12.5px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}.srow .k{color:var(--mut)}.srow .v{color:#fff;font-weight:600}
 
-  /* habit cards (with pose visuals) */
   .habit{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-top:10px}
   .habit .pic{width:46px;height:60px;flex:none;border-radius:11px;overflow:hidden;background:radial-gradient(120% 80% at 50% 0,#0d3a6e,#04132b);display:grid;place-items:end center}
   .habit .pic img{height:58px;width:auto;filter:drop-shadow(0 0 10px rgba(95,208,255,.4))}
-  .habit .hb{flex:1}
-  .habit .top{display:flex;justify-content:space-between;align-items:baseline}.habit .top b{font-size:15px}.habit .top .v{font-size:13px;color:var(--mut)}.habit .top .v b{color:#fff;font-size:16px}
-  .habit .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.08);margin-top:8px;overflow:hidden}.habit .bar i{display:block;height:100%;border-radius:99px;transition:width .5s}
-  .habit .goal{font-size:10.5px;color:var(--mut2);margin-top:5px}
-  input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:99px;outline:none;margin-top:9px;background:linear-gradient(90deg,var(--cyan) var(--p,0%),rgba(255,255,255,.1) var(--p,0%))}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(95,208,255,.7);cursor:pointer}
+  .habit .hb{flex:1}.habit .top{display:flex;justify-content:space-between;align-items:baseline}.habit .top b{font-size:15px}.habit .top .v{font-size:13px;color:var(--mut)}.habit .top .v b{color:#fff;font-size:16px}
+  .habit .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.08);margin-top:8px;overflow:hidden}.habit .bar i{display:block;height:100%;border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  .habit .goal{font-size:10.5px;color:var(--mut2);margin-top:5px;display:flex;align-items:center;gap:5px}
 
-  /* hero */
   .hero{position:relative;display:flex;justify-content:center;margin:4px 0 0}
-  .hero img{height:280px;width:auto;filter:drop-shadow(0 10px 40px rgba(0,40,90,.6))}
-  .hero .lumglow{position:absolute;left:50%;top:54%;width:130px;height:115px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,var(--gold),transparent 62%);opacity:.55;filter:blur(6px);mix-blend-mode:screen;transition:background .5s,opacity .5s}
+  .hero img{height:280px;width:auto;filter:drop-shadow(0 10px 40px rgba(0,40,90,.6));animation:float 7s ease-in-out infinite}
+  .hero .lumglow{position:absolute;left:50%;top:54%;width:130px;height:115px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,var(--gold),transparent 62%);opacity:.55;filter:blur(6px);mix-blend-mode:screen;animation:glow 4s ease-in-out infinite}
 
-  /* results / home cards */
   .ring{display:grid;place-items:center;position:relative;margin:6px 0}
   .ring .num{position:absolute;text-align:center}.ring .num b{font-size:44px;font-weight:800;letter-spacing:-1px}.ring .num span{display:block;font-size:9.5px;letter-spacing:2px;color:var(--mut);text-transform:uppercase}
   .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:14px}
-  .card h3{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut2);font-weight:600}
-  .mgmt{margin-top:14px;border-radius:14px;padding:13px 15px;font-size:13px;line-height:1.5}
+  .card h3{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut2);font-weight:600;display:flex;align-items:center;gap:7px}
+  .card h3 .ci{color:var(--cyan)}
+  .mgmt{margin-top:14px;border-radius:14px;padding:14px 15px}
   .bd{margin-top:12px;display:grid;gap:7px}.bd .b{display:flex;align-items:center;font-size:12.5px;gap:10px}.bd .b .n{flex:1;color:var(--mut)}.bd .b .v{color:#fff;font-weight:600}
   .trust{margin-top:18px;text-align:center;font-size:11.5px;color:var(--mut2);line-height:1.6;border-top:1px solid var(--line);padding-top:14px}
   .trust a{color:var(--cyan);text-decoration:none}.trust .by{color:#fff;font-weight:600}
   .disc{margin-top:10px;font-size:10.5px;color:var(--mut2);text-align:center;line-height:1.5}
 
-  /* home */
   .greet{font-size:13px;color:var(--mut)}.greet b{display:block;color:#fff;font-size:22px;font-weight:600;margin-top:2px}
   .scorecard{display:flex;align-items:center;gap:16px;margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
-  .scorecard .mini{position:relative;width:78px;height:78px;flex:none}
-  .scorecard .mini .n{position:absolute;inset:0;display:grid;place-items:center;font-size:26px;font-weight:800}
+  .scorecard .mini{position:relative;width:78px;height:78px;flex:none}.scorecard .mini .n{position:absolute;inset:0;display:grid;place-items:center;font-size:26px;font-weight:800}
   .scorecard .info b{font-size:15px}.scorecard .info .band{font-size:12px;font-weight:700;margin-top:2px}.scorecard .info p{font-size:11.5px;color:var(--mut2);margin-top:4px;line-height:1.4}
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 15px}.stat .k{font-size:11px;color:var(--mut2);text-transform:uppercase;letter-spacing:.5px}.stat .v{font-size:22px;font-weight:700;margin-top:4px}.stat .v small{font-size:12px;color:var(--mut);font-weight:500}
-  .syncbtn{margin-top:12px}
-  .spark{display:flex;align-items:flex-end;gap:5px;height:46px;margin-top:12px}.spark i{flex:1;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,var(--cyan),#0e7490);opacity:.85}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 15px}.stat .k{font-size:11px;color:var(--mut2);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:5px}.stat .v{font-size:22px;font-weight:700;margin-top:5px}.stat .v small{font-size:12px;color:var(--mut);font-weight:500}
 
-  /* rewards */
+  /* insights */
+  .ins{margin-top:12px}.insrow{margin-top:13px}.insrow .t{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:6px}.insrow .t b{color:#fff}
+  .spark{display:flex;align-items:flex-end;gap:5px;height:40px}.spark i{flex:1;border-radius:4px 4px 2px 2px;transition:height .5s}
+  .insight{display:flex;gap:9px;align-items:flex-start;font-size:12px;color:#c2d6ef;line-height:1.45;margin-top:11px;background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.16);border-radius:12px;padding:11px 12px}
+  .insight .ci{color:var(--cyan);flex:none;margin-top:1px}
+
+  /* tasks */
+  .task{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px 14px;margin-top:10px;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s,border-color .2s;overflow:hidden}
+  .task.out{animation:slideOutR .45s forwards cubic-bezier(.4,0,1,1)}
+  .task.in{animation:slideInL .45s both cubic-bezier(.2,.8,.2,1)}
+  .task .ti{width:40px;height:40px;flex:none;border-radius:12px;background:rgba(56,189,248,.12);display:grid;place-items:center;color:var(--cyan)}
+  .task .tb{flex:1}.task .tb b{font-size:14px}.task .tb span{font-size:11.5px;color:var(--mut2);display:block;margin-top:1px}
+  .task .tc{flex:none;width:30px;height:30px;border-radius:50%;border:1.6px solid var(--mut2);background:0;cursor:pointer;display:grid;place-items:center;color:#02121f;transition:all .2s}
+  .task .tc:active{transform:scale(.9)} .task.done .tc{background:var(--green);border-color:var(--green)} .task.done{border-color:rgba(52,211,153,.4)}
+  .task .pts{font-size:10px;color:var(--cyan);font-weight:700;flex:none}
+
   .ptbig{text-align:center;margin-top:8px}.ptbig b{font-size:44px;font-weight:800;color:var(--cyan)}.ptbig span{display:block;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--mut2)}
   .reward{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-top:10px}
-  .reward .ic{font-size:24px;width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:11px;background:rgba(56,189,248,.12)}
+  .reward .ic2{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:11px;background:rgba(56,189,248,.12);color:var(--cyan)}
   .reward .rb{flex:1}.reward .rb b{font-size:14px}.reward .rb span{font-size:11.5px;color:var(--mut2);display:block;margin-top:1px}
-  .reward .rc{flex:none;border:0;border-radius:11px;padding:9px 13px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;background:linear-gradient(120deg,var(--cyan),var(--indigo));color:#02121f}
+  .reward .rc{flex:none;border:0;border-radius:11px;padding:9px 13px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;background:linear-gradient(120deg,var(--cyan),var(--indigo));color:#02121f;display:flex;align-items:center;gap:4px}
   .reward .rc:disabled{background:rgba(255,255,255,.08);color:var(--mut2);cursor:not-allowed}
   .reward.got{opacity:.7}.reward.got .rc{background:rgba(52,211,153,.18);color:var(--green)}
 
-  /* tab bar */
-  .tabbar{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(4,12,28,.9);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-  .tabbar button{background:0;border:0;color:var(--mut2);font-family:inherit;font-size:10.5px;font-weight:600;padding:11px 0 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
-  .tabbar button .ti{font-size:19px}.tabbar button.on{color:var(--cyan)}
+  .tabbar{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(4,12,28,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  .tabbar button{background:0;border:0;color:var(--mut2);font-family:inherit;font-size:10px;font-weight:600;padding:10px 0 11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:color .2s}
+  .tabbar button.on{color:var(--cyan)}
 
-  /* toast */
-  .toast{position:fixed;top:64px;left:50%;transform:translateX(-50%) translateY(-12px);z-index:80;opacity:0;display:flex;align-items:center;gap:8px;background:rgba(56,189,248,.16);border:1px solid rgba(95,208,255,.5);color:var(--cyan);font-weight:700;font-size:13px;padding:8px 15px;border-radius:99px;backdrop-filter:blur(8px);pointer-events:none;transition:all .35s}
+  .toast{position:fixed;top:62px;left:50%;transform:translateX(-50%) translateY(-12px);z-index:80;opacity:0;display:flex;align-items:center;gap:7px;background:rgba(56,189,248,.16);border:1px solid rgba(95,208,255,.5);color:var(--cyan);font-weight:700;font-size:13px;padding:8px 15px;border-radius:99px;backdrop-filter:blur(8px);pointer-events:none;transition:all .35s}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #confetti{position:fixed;inset:0;z-index:90;pointer-events:none}
 </style>
 </head>
 <body>
 <div id="app"></div>
+<canvas id="confetti"></canvas>
 <div class="toast" id="toast"></div>
 <div class="pmask" id="pmask"><div class="pwrap">
-  <button class="pX" id="pX" aria-label="Close">✕</button>
+  <button class="pX" id="pX" aria-label="Close"></button>
   <div class="pscreen" id="pscreen"></div>
   <div class="pbar"><i id="pbar"></i></div>
   <div class="ptime" id="ptime">0:00 / 0:05</div>
@@ -180,11 +201,59 @@
 </div></div>
 
 <script>
-/* ════════════ BackSignal — grounded in Dr Ayush Sharma's SSS (lumbar only) ════════════ */
-const APP = {
-  doctor:'Dr Ayush Sharma',
-  links:{ website:'https://example.com', research:'https://example.com', youtube:'https://youtube.com' },
-  videos:{ // paste vertical YouTube IDs; empty id → script placeholder. All clips 5s gate.
+/* ════════════ icons (theme line-icons) + brand logos ════════════ */
+const IC={
+  home:'<path d="M3 11l9-7 9 7"/><path d="M5 10v9h5v-5h4v5h5v-9"/>',
+  plan:'<path d="M8 4h8v3H8z"/><rect x="5" y="6" width="14" height="15" rx="2"/><path d="M9 12l2 2 4-4"/><path d="M9 17h6"/>',
+  rewards:'<rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M3 9h18M12 9v11"/><path d="M12 9c-2 0-5-1-5-3.2C7 4 9 4 12 9zM12 9c2 0 5-1 5-3.2C17 4 15 4 12 9z"/>',
+  profile:'<circle cx="12" cy="8" r="4"/><path d="M5 21c0-4 3-6 7-6s7 2 7 6"/>',
+  sit:'<path d="M7 4v7h7"/><path d="M6 20l1-9M14 11l1 9M14 9h5v5"/>',
+  walk:'<circle cx="13" cy="4.5" r="1.7"/><path d="M11 9l3 1.5 1.5 4M11 9l-2.5 4.5M14.5 14.5L16 21M8.5 13.5L7 21"/>',
+  exercise:'<path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/>',
+  sleep:'<path d="M20 14a8 8 0 11-9-9 6.3 6.3 0 009 9z"/>',
+  check:'<path d="M5 12l4 4 10-10"/>',
+  flame:'<path d="M12 3c2.5 3.5-2 5 0 8 2-1 2-3 2-3 1.5 1.5 2 3.5 2 5a6 6 0 11-9.5-5C9 12 9 9 12 3z"/>',
+  spark:'<path d="M12 3l1.8 6.2L20 11l-6.2 1.8L12 19l-1.8-6.2L4 11l6.2-1.8z"/>',
+  play:'<path d="M8 5v14l11-7z"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  stretch:'<circle cx="12" cy="4.5" r="1.7"/><path d="M12 7v6m0 0l-3 5m3-5l3 5M8 9h8"/>',
+  book:'<path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M19 19H6a2 2 0 00-2 2"/>',
+  cushion:'<rect x="4" y="8" width="16" height="10" rx="3"/><path d="M7 8c0-2 2-3 5-3s5 1 5 3"/>',
+  stetho:'<path d="M5 4v5a4 4 0 008 0V4M5 4h2M11 4h2"/><path d="M9 16v1a4 4 0 008 0v-1"/><circle cx="18" cy="13" r="2.2"/>',
+  video:'<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/>',
+  star:'<path d="M12 3l2.5 6.2L21 10l-5 4 1.5 7L12 17l-5.5 4L8 14l-5-4 6.5-.8z"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  water:'<path d="M12 3c4 5 6 8 6 11a6 6 0 11-12 0c0-3 2-6 6-11z"/>',
+  bolt:'<path d="M13 3L5 13h6l-1 8 8-11h-6z"/>',
+}
+const icon=(n,s=20,cls='')=>`<svg class="ic ${cls}" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden>${IC[n]||''}</svg>`
+const LOGO={ // recognisable brand marks, themed in our cyan
+  'Apple Health':'<svg width="26" height="26" viewBox="0 0 24 24" aria-hidden><defs><linearGradient id="ah" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5fd0ff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs><path d="M12 20.5S4 15.5 4 9.8C4 6.6 6.3 5 8.3 5c1.6 0 2.8 1 3.7 2 .9-1 2.1-2 3.7-2 2 0 4.3 1.6 4.3 4.8 0 5.7-8 10.7-8 10.7z" fill="url(#ah)"/></svg>',
+  'Google Fit':'<svg width="26" height="26" viewBox="0 0 24 24" aria-hidden><path d="M12 12l4-4a2.8 2.8 0 00-4-4l-4 4z" fill="#5fd0ff"/><path d="M8 8l-2 2a2.8 2.8 0 104 4l2-2z" fill="#38bdf8"/><path d="M12 12l4 4a2.8 2.8 0 004-4l-4-4z" fill="#818cf8"/><circle cx="12" cy="12" r="2.4" fill="#cfeefe"/></svg>',
+  'Fitbit':'<svg width="26" height="26" viewBox="0 0 24 24" aria-hidden><g fill="#5fd0ff"><circle cx="19" cy="12" r="2"/><circle cx="13.5" cy="7" r="1.7"/><circle cx="13.5" cy="12" r="1.9"/><circle cx="13.5" cy="17" r="1.7"/><circle cx="8.5" cy="9" r="1.3"/><circle cx="8.5" cy="12" r="1.5"/><circle cx="8.5" cy="15" r="1.3"/><circle cx="4" cy="12" r="1.1"/></g></svg>',
+}
+
+/* ════════════ confetti (theme colours) ════════════ */
+const cc=document.getElementById('confetti'),cx=cc.getContext('2d')
+function fitC(){cc.width=innerWidth;cc.height=innerHeight}; fitC(); addEventListener('resize',fitC)
+let parts=[],raf=null
+function confetti(x,y){
+  const cols=['#5fd0ff','#818cf8','#ffb020','#34d399','#ffffff']
+  for(let i=0;i<46;i++)parts.push({x,y,vx:(Math.random()-.5)*8,vy:-Math.random()*10-3,g:.35,r:Math.random()*5+3,c:cols[i%cols.length],a:1,rot:Math.random()*6,vr:(Math.random()-.5)*.5})
+  if(!raf)raf=requestAnimationFrame(step)
+}
+function step(){
+  cx.clearRect(0,0,cc.width,cc.height); let alive=false
+  for(const p of parts){ if(p.a<=0)continue; alive=true; p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.a-=.012
+    cx.save(); cx.globalAlpha=Math.max(0,p.a); cx.translate(p.x,p.y); cx.rotate(p.rot); cx.fillStyle=p.c; cx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.6); cx.restore() }
+  if(alive)raf=requestAnimationFrame(step); else{ raf=null; parts=[]; cx.clearRect(0,0,cc.width,cc.height) }
+}
+
+/* ════════════ config ════════════ */
+const APP={ doctor:'Dr Ayush Sharma', links:{website:'https://example.com',research:'https://example.com',youtube:'https://youtube.com'},
+  videos:{
     intro:{id:'',title:'Why your lower back matters',script:'Most lower-back pain is built slowly — by how you sit, move and sleep. BackSignal turns your habits and symptoms into one Spine Severity Score, then tracks you daily.'},
     vas:{id:'',title:'Rating your pain',script:'Pain is the body’s signal. Pick the face that matches your lower back right now.'},
     sciatica:{id:'',title:'Leg pain & sciatica',script:'Pain or numbness travelling down the leg can mean an irritated nerve in the lower back.'},
@@ -192,34 +261,40 @@ const APP = {
     bmi:{id:'',title:'Body load on the spine',script:'Extra body weight increases mechanical load on the lumbar discs. Your BMI adds a small weighting.'},
     chronicity:{id:'',title:'How long it’s lasted',script:'Pain past six weeks behaves differently to a fresh strain — duration changes what we recommend.'},
     redflag:{id:'',title:'A quick safety check',script:'A few symptoms can signal something serious needing urgent care. We always screen for these first.'},
-  },
-}
+  } }
 const REWARDS=[
-  {id:'guide',ic:'📘',name:'Lower-back care guide (PDF)',cost:150,desc:'Dr-approved daily routine'},
-  {id:'cushion',ic:'🪑',name:'Posture cushion — 20% off',cost:400,desc:'Partner discount code'},
-  {id:'physio',ic:'🧑‍⚕️',name:'Free physio screening',cost:700,desc:'15-min online session'},
-  {id:'coach',ic:'🎥',name:'1:1 with a spine coach',cost:1200,desc:'Personalised video call'},
-  {id:'pro',ic:'⭐',name:'BackSignal Pro — 1 month',cost:1000,desc:'Advanced tracking & insights'},
+  {id:'guide',ic:'book',name:'Lower-back care guide (PDF)',cost:150,desc:'Dr-approved daily routine'},
+  {id:'cushion',ic:'cushion',name:'Posture cushion — 20% off',cost:400,desc:'Partner discount code'},
+  {id:'physio',ic:'stetho',name:'Free physio screening',cost:700,desc:'15-min online session'},
+  {id:'coach',ic:'video',name:'1:1 with a spine coach',cost:1200,desc:'Personalised video call'},
+  {id:'pro',ic:'star',name:'BackSignal Pro — 1 month',cost:1000,desc:'Advanced tracking & insights'},
 ]
-const TARGETS={ sitting:7, walking:45, exercise:20, sleep:7.5 } // daily goals
-const POSE={ sitting:'assets/sit.webp', walking:'assets/walk.webp', exercise:'assets/lift.webp', sleep:'assets/sleep.webp' }
+const TASK_POOL=[
+  {id:'posture',ic:'clock',title:'2-minute posture reset',sub:'Stand, roll shoulders back, lengthen up',pts:20},
+  {id:'catcow',ic:'stretch',title:'Cat–cow × 10',sub:'Gentle lumbar mobility',pts:25},
+  {id:'walk10',ic:'walk',title:'Walk for 10 minutes',sub:'Pumps the discs, eases stiffness',pts:25},
+  {id:'hammy',ic:'stretch',title:'Hamstring stretch × 3',sub:'30s each side',pts:20},
+  {id:'bridge',ic:'exercise',title:'Glute bridge × 12',sub:'Builds spine support',pts:25},
+  {id:'break',ic:'clock',title:'Stand & move every 30 min',sub:'Break up prolonged sitting',pts:15},
+  {id:'water',ic:'water',title:'Drink 2 glasses of water',sub:'Discs are 80% water',pts:10},
+  {id:'winddown',ic:'sleep',title:'Wind down by 11 pm',sub:'Recovery happens in deep sleep',pts:20},
+  {id:'learn',ic:'video',title:'Watch: protect your lower back',sub:'60-second lesson',pts:15},
+]
+const TARGETS={sitting:7,walking:45,exercise:20,sleep:7.5}
+const POSE={sitting:'assets/sit.webp',walking:'assets/walk.webp',exercise:'assets/lift.webp',sleep:'assets/sleep.webp'}
+const HIC={sitting:'sit',walking:'walk',exercise:'exercise',sleep:'sleep'}
 
-/* ── persistent state ── */
-const KEY='backsignal_v1'
+/* ════════════ state ════════════ */
+const KEY='backsignal_v2'
 const todayStr=()=>new Date().toISOString().slice(0,10)
-let S = load()
+let S=load()
 function load(){ try{const s=JSON.parse(localStorage.getItem(KEY)); if(s)return s}catch(e){}
-  return { onboarded:false, points:0, streak:0, lastSync:null, device:null, redeemed:[],
-    profile:null, today:null, history:[], planDone:[] } }
+  return {onboarded:false,points:0,streak:0,lastSync:null,device:null,redeemed:[],profile:null,today:null,history:[],planDone:[],tasks:null,tasksDone:0} }
 function save(){ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} }
-
-/* onboarding working data */
-let D = { age:35,sex:'',occupation:'',height:170,weight:72,vas:null,sciatica:null,
-  odi:{Walking:0,Sitting:0,Standing:0,Sleep:0,'Daily activities':0},chronicity:null,redflags:[],
-  habits:{sitting:8,walking:30,exercise:2,sleep:7} }
+let D={name:'',age:35,sex:'',occupation:'',height:170,weight:72,vas:null,sciatica:null,odi:{Walking:0,Sitting:0,Standing:0,Sleep:0,'Daily activities':0},chronicity:null,redflags:[],habits:{sitting:8,walking:30,exercise:2,sleep:7}}
 let watched={}
 
-/* ── SSS scoring (exact to chart) ── */
+/* ════════════ scoring (SSS) ════════════ */
 const bmiOf=(w,h)=>w/Math.pow(h/100,2)
 const bmiScore=()=>{const b=bmiOf(D.weight,D.height);return b<25?0:b<30?1:2}
 const vasPoints=()=>D.vas==null?0:D.vas<=3?0:D.vas<=6?1:2
@@ -235,277 +310,264 @@ function severity(t){
   return{band:'LOW',color:'var(--green)',hex:'#34d399',desc:'Minimal pain and low impact on your day.',mgmt:'Education, posture correction and regular exercise.'}
 }
 
-/* ── points / toast ── */
+/* points + toast */
 const toastEl=document.getElementById('toast')
-function award(n,label){ S.points+=n; save(); toastEl.innerHTML=`✦ +${n} <span style="opacity:.8;font-weight:500">${label}</span>`;
-  toastEl.classList.add('show'); clearTimeout(award._t); award._t=setTimeout(()=>toastEl.classList.remove('show'),1700) }
+function award(n,label,burst){ if(n)S.points+=n; save(); toastEl.innerHTML=`${icon('spark',15)} ${n?'+'+n+' ':''}<span style="opacity:.85;font-weight:500">${label}</span>`
+  toastEl.classList.add('show'); clearTimeout(award._t); award._t=setTimeout(()=>toastEl.classList.remove('show'),1700); if(burst)confetti(burst[0],burst[1]) }
 
-/* ── video player (5s gate) ── */
-const pmask=document.getElementById('pmask'),pscreen=document.getElementById('pscreen'),pbar=document.getElementById('pbar'),pdone=document.getElementById('pdone'),ptime=document.getElementById('ptime')
+/* ════════════ video (5s gate + replay close) ════════════ */
+const pmask=document.getElementById('pmask'),pscreen=document.getElementById('pscreen'),pbar=document.getElementById('pbar'),pdone=document.getElementById('pdone'),ptime=document.getElementById('ptime'),pXb=document.getElementById('pX')
+pXb.innerHTML=icon('x',14)
 let ptimer=null,pcb=null
-function videoCard(key,id){ const v=APP.videos[key]; const done=watched[id||key];
-  return `<div class="vcard ${done?'done':''}" data-vid="${key}" data-vk="${id||key}">
-    <div class="thumb"><div class="pl">▶</div></div>
-    <div class="meta"><b>${v.title}</b><span>${done?'Watched ✓':'Why we ask · 0:05'}</span></div>
-    <div class="yt">${done?'✓':'▶ Watch'}</div></div>` }
+function videoCard(key,id){ const v=APP.videos[key],done=watched[id||key]
+  return `<div class="vcard ${done?'done':''}" data-vid="${key}" data-vk="${id||key}"><div class="thumb">${icon('play',16,'f')}</div><div class="meta"><b>${v.title}</b><span>${done?'Watched':'Why we ask · 0:05'}</span></div><div class="yt">${done?icon('check',16):'Watch'}</div></div>` }
 function openVideo(key,wkey,onDone){
-  const v=APP.videos[key]; pcb=onDone||null; clearInterval(ptimer); pbar.style.width='0%'; ptime.textContent='0:00 / 0:05'
-  pdone.disabled=true; pdone.textContent='Watch to continue'
-  if(v.id){ pscreen.innerHTML=`<iframe src="https://www.youtube.com/embed/${v.id}?rel=0&modestbranding=1&playsinline=1&autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>` }
-  else{ pscreen.innerHTML=`<div class="ph"><img src="assets/stand.webp" alt=""/><div class="pt">${APP.doctor} · Spine Lab</div><h3>${v.title}</h3><p>${v.script}</p></div>` }
+  const v=APP.videos[key]; pcb=onDone||null; clearInterval(ptimer); pbar.style.width='0%'; ptime.textContent='0:00 / 0:05'; pdone.disabled=true; pdone.textContent='Watch to continue'
+  pscreen.innerHTML=v.id?`<iframe src="https://www.youtube.com/embed/${v.id}?rel=0&modestbranding=1&playsinline=1&autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`:`<div class="ph"><img src="assets/stand.webp" alt=""/><div class="pt">${APP.doctor} · Spine Lab</div><h3>${v.title}</h3><p>${v.script}</p></div>`
   pmask.classList.add('show'); pmask.dataset.wk=wkey||key
-  const replay=!!watched[wkey||key]            // already seen → user may close anytime
-  document.getElementById('pX').style.display=replay?'grid':'none'
-  if(replay){ pdone.disabled=false; pdone.textContent='Close' }
-  let p=0; ptimer=setInterval(()=>{ p+=0.1; const f=Math.min(1,p/5); pbar.style.width=f*100+'%'; ptime.textContent='0:0'+Math.min(5,Math.floor(p))+' / 0:05'
-    if(f>=1){ clearInterval(ptimer); if(!replay){ pdone.disabled=false; pdone.textContent='Continue ✓' } } },100)
+  const replay=!!watched[wkey||key]; pXb.style.display=replay?'flex':'none'; if(replay){pdone.disabled=false;pdone.textContent='Close'}
+  let p=0; ptimer=setInterval(()=>{ p+=0.1; const f=Math.min(1,p/5); pbar.style.width=f*100+'%'; ptime.textContent='0:0'+Math.min(5,Math.floor(p))+' / 0:05'; if(f>=1){clearInterval(ptimer); if(!replay){pdone.disabled=false;pdone.textContent='Continue'}} },100)
 }
-pdone.onclick=()=>{ if(pdone.disabled)return; clearInterval(ptimer); pmask.classList.remove('show')
-  const wk=pmask.dataset.wk; if(!watched[wk]){ watched[wk]=true; award(10,'Watched') } const cb=pcb; pcb=null; if(cb)cb() }
-document.getElementById('pX').onclick=()=>{ clearInterval(ptimer); pmask.classList.remove('show'); pcb=null }
+pdone.onclick=()=>{ if(pdone.disabled)return; clearInterval(ptimer); pmask.classList.remove('show'); const wk=pmask.dataset.wk; if(!watched[wk]){watched[wk]=true; award(10,'Watched')} const cb=pcb; pcb=null; if(cb)cb() }
+pXb.onclick=()=>{ clearInterval(ptimer); pmask.classList.remove('show'); pcb=null }
 
-/* ── faces ── */
-function face(v){ const cols=['#34d399','#7dd37d','#fbbf24','#fb923c','#f87171','#ef4444']; const c=cols[v/2]
-  const mouth=v<=2?'M8 16q4 3 8 0':v<=4?'M8 16h8':v<=6?'M8 17q4 -1 8 0':'M8 18q4 -4 8 0'
+function face(v){ const cols=['#34d399','#7dd37d','#fbbf24','#fb923c','#f87171','#ef4444'],c=cols[v/2],mouth=v<=2?'M8 16q4 3 8 0':v<=4?'M8 16h8':v<=6?'M8 17q4 -1 8 0':'M8 18q4 -4 8 0'
   return `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="${c}" stroke-width="1.8"/><circle cx="8.5" cy="10" r="1.1" fill="${c}"/><circle cx="15.5" cy="10" r="1.1" fill="${c}"/><path d="${mouth}" stroke="${c}" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>` }
 
 /* ════════════ ONBOARDING STEPS ════════════ */
 const STEPS=[
-  {id:'intro',prog:0,label:['BackSignal',''],video:'intro',
+  {id:'intro',prog:0,label:['BackSignal',''],video:'intro',gate:false,
     render:()=>`<div class="hero"><img src="assets/stand.webp" alt="Lower spine"/><div class="lumglow"></div></div>
-      <div class="eyebrow">${APP.doctor} · Spine Severity System</div>
-      <h1 class="q">Your personal <span class="lumbar">lower-back</span> score</h1>
-      <p class="sub">A doctor-verified, 6-step lumbar screening — then a daily tracker that earns you rewards.</p>
-      ${videoCard('intro')}
+      <div class="eyebrow">${APP.doctor} · Spine Severity System</div><h1 class="q">Your personal <span class="lumbar">lower-back</span> score</h1>
+      <p class="sub">A doctor-verified, 6-step lumbar screening — then a daily tracker that earns you rewards.</p>${videoCard('intro')}
       <div class="trust" style="border:0;padding-top:14px;margin-top:14px;text-align:left"><span class="by">Built on the Spine Severity System (SSS)</span> by ${APP.doctor}, Dept. of Spine Surgery. <a href="${APP.links.website}" target="_blank" rel="noopener">Learn more →</a></div>`,
     cta:'Begin assessment',next:'device'},
 
   {id:'device',prog:.1,back:true,label:['Connect','Optional'],
     render:()=>`<div class="eyebrow">Faster & more accurate</div><h1 class="q">Connect a health device</h1>
-      <p class="sub">Auto-fill and keep tracking your sleep, steps and activity — so you type less. You can also enter things manually.</p>
-      <div id="devlist">${[['Apple Health','🍎'],['Google Fit','🟢'],['Fitbit','⌚']].map(([n,i])=>`<div class="dev" data-dev="${n}"><span class="di">${i}</span><div><b>${n}</b><span>Sleep · steps · activity</span></div><span class="arr">›</span></div>`).join('')}</div>
+      <p class="sub">We’ll pull your name, basics and recent activity automatically — and keep your habits updated. You can also enter things manually.</p>
+      <div id="devlist">${['Apple Health','Google Fit','Fitbit'].map(n=>`<div class="dev" data-dev="${n}"><span class="di">${LOGO[n]}</span><div><b>${n}</b><span>Profile · sleep · steps · activity</span></div><span class="arr">${icon('arrow',18)}</span></div>`).join('')}</div>
       <div id="devbox"></div>`,
     init:()=>{ const box=document.getElementById('devbox'); document.querySelectorAll('#devlist .dev').forEach(el=>el.onclick=()=>{
       if(box.dataset.busy)return; box.dataset.busy='1'; document.querySelectorAll('#devlist .dev').forEach(x=>x.style.opacity=x===el?'1':'.4')
       box.innerHTML=`<div style="text-align:center;padding:18px 0;color:var(--mut);font-size:13px"><span class="spin"></span> Syncing ${el.dataset.dev}…</div>`
-      setTimeout(()=>{ S.device=el.dataset.dev; D.habits.walking=38; D.habits.sleep=6; save()
-        box.innerHTML=`<div class="synced">✓ Connected to ${el.dataset.dev}</div><div class="srow"><span class="k">Avg steps / day</span><span class="v">6,240</span></div><div class="srow"><span class="k">Walking</span><span class="v">~38 min/day</span></div><div class="srow"><span class="k">Sleep</span><span class="v">6h 05m</span></div>`
+      setTimeout(()=>{ S.device=el.dataset.dev
+        // auto-populate profile + recent activity from the device
+        Object.assign(D,{name:'Aarav Sharma',age:34,sex:'Male',height:176,weight:79}); D.habits.walking=38; D.habits.sleep=6; save()
+        box.innerHTML=`<div class="synced">${icon('check',16)} Connected to ${el.dataset.dev}</div>
+          <div class="srow"><span class="k">Name</span><span class="v">${D.name}</span></div>
+          <div class="srow"><span class="k">Age · Sex</span><span class="v">${D.age} · ${D.sex}</span></div>
+          <div class="srow"><span class="k">Height · Weight</span><span class="v">${D.height}cm · ${D.weight}kg</span></div>
+          <div class="srow"><span class="k">Walking · Sleep</span><span class="v">~38 min · 6h 05m</span></div>
+          <div class="prefill" style="margin-top:10px">${icon('check',13)} Your details are pre-filled — review them next.</div>`
         box.dataset.busy=''; setFoot() },1400) }) },
     cta:()=>S.device?'Continue':'Enter manually',next:'about'},
 
   {id:'about',prog:.18,back:true,label:['About you',''],
-    render:()=>`<div class="eyebrow">A few basics</div><h1 class="q">About you</h1><p class="sub">Calibrates your score to your age and body load. Lower-back focus only.</p>
+    render:()=>`<div class="eyebrow">${S.device?'Pulled from '+S.device:'A few basics'}</div><h1 class="q">About you</h1>
+      <p class="sub">${S.device?'We pre-filled this from your device — edit anything that’s off.':'Calibrates your score to your age and body load.'} Lower-back focus only.</p>
+      <div class="field"><label>Name</label><input id="nm" type="text" value="${D.name}" placeholder="Your name"/>${S.device?`<div class="prefill">${icon('check',13)} from ${S.device}</div>`:''}</div>
       <div class="field"><label>Age</label><input id="age" type="number" inputmode="numeric" value="${D.age}"/></div>
-      <div class="field"><label>Sex</label><div class="chips two" id="sex">${['Male','Female'].map(s=>`<button class="chip ${D.sex===s?'on':''}" data-s="${s}" style="text-align:center">${s}</button>`).join('')}</div></div>
+      <div class="field"><label>Sex</label><div class="chips two" id="sex">${['Male','Female'].map(s=>`<button class="chip ${D.sex===s?'on':''}" data-s="${s}" style="justify-content:center">${s}</button>`).join('')}</div></div>
       <div class="field"><label>Occupation</label><input id="occ" type="text" placeholder="e.g. Software engineer" value="${D.occupation}"/></div>
       <div class="row2"><div class="field"><label>Height (cm)</label><input id="ht" type="number" value="${D.height}"/></div><div class="field"><label>Weight (kg)</label><input id="wt" type="number" value="${D.weight}"/></div></div>`,
-    init:()=>{ const bind=(id,k,n)=>{const e=document.getElementById(id);e.oninput=()=>{D[k]=n?+e.value:e.value}}; bind('age','age',1);bind('occ','occupation',0);bind('ht','height',1);bind('wt','weight',1)
+    init:()=>{ const bind=(id,k,n)=>{const e=document.getElementById(id);e.oninput=()=>{D[k]=n?+e.value:e.value}}; bind('nm','name',0);bind('age','age',1);bind('occ','occupation',0);bind('ht','height',1);bind('wt','weight',1)
       document.querySelectorAll('#sex .chip').forEach(b=>b.onclick=()=>{D.sex=b.dataset.s;document.querySelectorAll('#sex .chip').forEach(x=>x.classList.toggle('on',x===b))}) },
     cta:'Continue',next:'vas'},
 
   {id:'vas',prog:.3,back:true,label:['Step 1 / 6','Pain'],video:'vas',
-    render:()=>`<div class="eyebrow">Step 1 · Back pain (VAS)</div><h1 class="q">How bad is your <span class="lumbar">lower back</span> today?</h1><p class="sub">Pick the face that matches your pain right now.</p>
-      ${videoCard('vas')}<div class="gatewrap"><div class="faces" id="faces">${[0,2,4,6,8,10].map(v=>`<div class="face ${D.vas===v?'on':''}" data-v="${v}">${face(v)}<span>${v}</span></div>`).join('')}</div><div class="vaslbl" id="vaslbl"></div></div>`,
-    init:()=>{ const lbl=document.getElementById('vaslbl'); const upd=()=>{lbl.innerHTML=D.vas==null?'':(D.vas<=3?'<span style="color:var(--green)">Mild (0–3)</span>':D.vas<=6?'<span style="color:var(--amber)">Moderate (4–6)</span>':'<span style="color:var(--red)">Severe (7–10)</span>')}
+    render:()=>`<div class="eyebrow">Step 1 · Back pain (VAS)</div><h1 class="q">How bad is your <span class="lumbar">lower back</span> today?</h1><p class="sub">Pick the face that matches your pain right now.</p>${videoCard('vas')}
+      <div class="gatewrap"><div class="faces" id="faces">${[0,2,4,6,8,10].map(v=>`<div class="face ${D.vas===v?'on':''}" data-v="${v}">${face(v)}<span>${v}</span></div>`).join('')}</div><div class="vaslbl" id="vaslbl"></div></div>`,
+    init:()=>{ const lbl=document.getElementById('vaslbl'),upd=()=>lbl.innerHTML=D.vas==null?'':(D.vas<=3?'<span style="color:var(--green)">Mild (0–3)</span>':D.vas<=6?'<span style="color:var(--amber)">Moderate (4–6)</span>':'<span style="color:var(--red)">Severe (7–10)</span>')
       document.querySelectorAll('#faces .face').forEach(f=>f.onclick=()=>{D.vas=+f.dataset.v;document.querySelectorAll('#faces .face').forEach(x=>x.classList.toggle('on',x===f));upd();setFoot()}); upd() },
     canNext:()=>D.vas!=null,cta:'Continue',next:'sciatica'},
 
   {id:'sciatica',prog:.42,back:true,label:['Step 2 / 6','Sciatica'],video:'sciatica',
-    render:()=>`<div class="eyebrow">Step 2 · Leg pain / sciatica</div><h1 class="q">Pain or numbness down the leg?</h1><p class="sub">Pain travelling from the lower back into the leg can mean an irritated nerve.</p>
-      ${videoCard('sciatica')}<div class="gatewrap"><div class="chips" id="sci">${[[0,'None','No leg pain, or only occasional'],[1,'Mild','Mild symptoms, not limiting'],[2,'Moderate','Pain/numbness in the leg, limits some activity'],[3,'Severe','Constant pain or numbness, affects walking']].map(([v,t,d])=>`<button class="chip ${D.sciatica===v?'on':''}" data-v="${v}">${t}<b>${d}</b></button>`).join('')}</div></div>`,
+    render:()=>`<div class="eyebrow">Step 2 · Leg pain / sciatica</div><h1 class="q">Pain or numbness down the leg?</h1><p class="sub">Pain travelling from the lower back into the leg can mean an irritated nerve.</p>${videoCard('sciatica')}
+      <div class="gatewrap"><div class="chips" id="sci">${[[0,'None','No leg pain, or only occasional'],[1,'Mild','Mild symptoms, not limiting'],[2,'Moderate','Pain/numbness in the leg, limits some activity'],[3,'Severe','Constant pain or numbness, affects walking']].map(([v,t,d])=>`<button class="chip ${D.sciatica===v?'on':''}" data-v="${v}"><div>${t}<b>${d}</b></div></button>`).join('')}</div></div>`,
     init:()=>document.querySelectorAll('#sci .chip').forEach(b=>b.onclick=()=>{D.sciatica=+b.dataset.v;document.querySelectorAll('#sci .chip').forEach(x=>x.classList.toggle('on',x===b));setFoot()}),
     canNext:()=>D.sciatica!=null,cta:'Continue',next:'odi'},
 
   {id:'odi',prog:.56,back:true,label:['Step 3 / 6','Function'],video:'odi',
-    render:()=>`<div class="eyebrow">Step 3 · Daily function (ODI)</div><h1 class="q">How much does it limit you?</h1><p class="sub">Rate each activity (Modified Oswestry Disability Index).</p>
-      ${videoCard('odi')}<div class="gatewrap"><div class="odi" id="odi">${Object.keys(D.odi).map(act=>`<div class="odirow"><div class="n">${act}</div><div class="seg" data-act="${act}"><button class="g ${D.odi[act]===0?'on':''}" data-v="0">Normal</button><button class="a ${D.odi[act]===1?'on':''}" data-v="1">Mild</button><button class="r ${D.odi[act]===2?'on':''}" data-v="2">Severe</button></div></div>`).join('')}</div><div class="odisum" id="odisum"></div></div>`,
-    init:()=>{ const sum=document.getElementById('odisum'); const upd=()=>sum.innerHTML=`Disability index: <b style="color:#fff">${odiTotal()} / 10</b>`
+    render:()=>`<div class="eyebrow">Step 3 · Daily function (ODI)</div><h1 class="q">How much does it limit you?</h1><p class="sub">Rate each activity — your disability index updates live.</p>${videoCard('odi')}
+      <div class="gatewrap"><div class="odiring"><svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="11"/><circle id="oring" cx="60" cy="60" r="50" fill="none" stroke="var(--cyan)" stroke-width="11" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"/></svg><div class="n"><b id="onum" style="color:var(--cyan)">0</b><span>/ 10 index</span></div></div>
+      <div class="odi" id="odi">${Object.keys(D.odi).map(act=>{const k={'Walking':'walk','Sitting':'sit','Standing':'walk','Sleep':'sleep','Daily activities':'exercise'}[act]
+        return `<div class="odirow"><div class="hd">${icon(k,17,'ci')}${act}</div><div class="seg" data-act="${act}"><button class="g ${D.odi[act]===0?'on':''}" data-v="0">Normal</button><button class="a ${D.odi[act]===1?'on':''}" data-v="1">Mild</button><button class="r ${D.odi[act]===2?'on':''}" data-v="2">Severe</button></div></div>`}).join('')}</div></div>`,
+    init:()=>{ const ring=document.getElementById('oring'),num=document.getElementById('onum'),upd=()=>{const t=odiTotal();num.textContent=t;ring.style.strokeDashoffset=314-(t/10)*314;ring.style.stroke=t<=2?'var(--green)':t<=5?'var(--amber)':'var(--red)';num.style.color=ring.style.stroke}
+      ring.style.transition='stroke-dashoffset .5s,stroke .3s'
       document.querySelectorAll('#odi .seg').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{D.odi[seg.dataset.act]=+b.dataset.v;seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));upd()})); upd() },
     cta:'Continue',next:'bmi'},
 
   {id:'bmi',prog:.66,back:true,label:['Step 4 / 6','Body load'],video:'bmi',
-    render:()=>{ const b=bmiOf(D.weight,D.height),sc=bmiScore(),cat=b<25?'Healthy range':b<30?'Overweight':'Obese',col=sc===0?'var(--green)':sc===1?'var(--amber)':'var(--red)'
-      return `<div class="eyebrow">Step 4 · Body load (BMI)</div><h1 class="q">Mechanical load on your spine</h1><p class="sub">From your height & weight. Higher BMI loads the lumbar discs.</p>
-      ${videoCard('bmi')}<div class="gatewrap"><div class="ring" style="margin-top:16px"><svg width="146" height="146" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/><circle cx="60" cy="60" r="52" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round" stroke-dasharray="326" stroke-dashoffset="${326-Math.min(1,b/40)*326}"/></svg><div class="num"><b style="color:${col};font-size:36px">${b.toFixed(1)}</b><span>BMI</span><small style="color:${col};font-size:11px">${cat}</small></div></div>
-      <div class="field"><label>Adjust weight (kg)</label><input id="wt2" type="number" value="${D.weight}"/></div></div>` },
-    init:()=>{ const e=document.getElementById('wt2'); if(e)e.oninput=()=>{D.weight=+e.value||D.weight;render()} },
+    render:()=>{const b=bmiOf(D.weight,D.height),sc=bmiScore(),cat=b<25?'Healthy range':b<30?'Overweight':'Obese',col=sc===0?'var(--green)':sc===1?'var(--amber)':'var(--red)'
+      return `<div class="eyebrow">Step 4 · Body load (BMI)</div><h1 class="q">Mechanical load on your spine</h1><p class="sub">From your height & weight. Higher BMI loads the lumbar discs.</p>${videoCard('bmi')}
+      <div class="gatewrap"><div class="ring" style="margin-top:16px"><svg width="146" height="146" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/><circle cx="60" cy="60" r="52" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round" stroke-dasharray="326" stroke-dashoffset="${326-Math.min(1,b/40)*326}"/></svg><div class="num"><b style="color:${col};font-size:36px">${b.toFixed(1)}</b><span>BMI</span><small style="color:${col};font-size:11px">${cat}</small></div></div>
+      <div class="field"><label>Adjust weight (kg)</label><input id="wt2" type="number" value="${D.weight}"/></div></div>`},
+    init:()=>{ const e=document.getElementById('wt2'); if(e)e.oninput=()=>{D.weight=+e.value||D.weight;renderStep()} },
     cta:'Continue',next:'chronicity'},
 
   {id:'chronicity',prog:.8,back:true,label:['Step 5 / 6','Duration'],video:'chronicity',
-    render:()=>`<div class="eyebrow">Step 5 · How long</div><h1 class="q">How long has it lasted?</h1><p class="sub">Duration changes how lower-back pain is managed.</p>
-      ${videoCard('chronicity')}<div class="gatewrap"><div class="chips" id="chr">${[['acute','Acute','Less than 3 weeks'],['subacute','Subacute','3 to 6 weeks'],['chronic','Chronic','More than 6 weeks']].map(([v,t,d])=>`<button class="chip ${D.chronicity===v?'on':''}" data-v="${v}">${t}<b>${d}</b></button>`).join('')}</div></div>`,
+    render:()=>`<div class="eyebrow">Step 5 · How long</div><h1 class="q">How long has it lasted?</h1><p class="sub">Duration changes how lower-back pain is managed.</p>${videoCard('chronicity')}
+      <div class="gatewrap"><div class="chips" id="chr">${[['acute','Acute','Less than 3 weeks'],['subacute','Subacute','3 to 6 weeks'],['chronic','Chronic','More than 6 weeks']].map(([v,t,d])=>`<button class="chip ${D.chronicity===v?'on':''}" data-v="${v}"><span class="ci">${icon('clock',18)}</span><div>${t}<b>${d}</b></div></button>`).join('')}</div></div>`,
     init:()=>document.querySelectorAll('#chr .chip').forEach(b=>b.onclick=()=>{D.chronicity=b.dataset.v;document.querySelectorAll('#chr .chip').forEach(x=>x.classList.toggle('on',x===b));setFoot()}),
     canNext:()=>D.chronicity!=null,cta:'Continue',next:'redflag'},
 
   {id:'redflag',prog:.9,back:true,label:['Step 6 / 6','Safety'],video:'redflag',
-    render:()=>`<div class="eyebrow">Step 6 · Safety check (red flags)</div><h1 class="q">Any of these apply?</h1><p class="sub">Tick anything you currently have. If none, leave them unchecked.</p>
-      ${videoCard('redflag')}<div class="gatewrap"><div class="flags" id="flags">${['History of cancer','Unexplained weight loss','Fever / infection','Recent major trauma','Loss of bladder or bowel control','Numbness around the saddle area','Progressive leg weakness'].map(f=>`<div class="flag ${D.redflags.includes(f)?'on':''}" data-f="${f}"><span class="bx">${D.redflags.includes(f)?'✓':''}</span>${f}</div>`).join('')}</div><div class="warn">⚠ Any red flag can signal serious pathology and means urgent medical review.</div></div>`,
-    init:()=>document.querySelectorAll('#flags .flag').forEach(el=>el.onclick=()=>{const f=el.dataset.f,i=D.redflags.indexOf(f);if(i>=0)D.redflags.splice(i,1);else D.redflags.push(f);el.classList.toggle('on');el.querySelector('.bx').textContent=D.redflags.includes(f)?'✓':''}),
+    render:()=>`<div class="eyebrow">Step 6 · Safety check (red flags)</div><h1 class="q">Any of these apply?</h1><p class="sub">Tick anything you currently have. If none, leave them unchecked.</p>${videoCard('redflag')}
+      <div class="gatewrap"><div class="flags" id="flags">${['History of cancer','Unexplained weight loss','Fever / infection','Recent major trauma','Loss of bladder or bowel control','Numbness around the saddle area','Progressive leg weakness'].map(f=>`<div class="flag ${D.redflags.includes(f)?'on':''}" data-f="${f}"><span class="bx">${D.redflags.includes(f)?icon('check',13):''}</span>${f}</div>`).join('')}</div><div class="warn">${icon('shield',16)}<div>Any red flag can signal serious pathology and means urgent medical review.</div></div></div>`,
+    init:()=>document.querySelectorAll('#flags .flag').forEach(el=>el.onclick=()=>{const f=el.dataset.f,i=D.redflags.indexOf(f);if(i>=0)D.redflags.splice(i,1);else D.redflags.push(f);el.classList.toggle('on');el.querySelector('.bx').innerHTML=D.redflags.includes(f)?icon('check',13):''}),
     cta:'Get my Spine Score',next:'result'},
 
   {id:'result',prog:1,label:['Your result',''],result:true,
-    render:()=>{ const t=sssTotal(),sv=severity(t),rows=[['Back pain (VAS)',`${D.vas??'–'}/10 · ${vasPoints()}pt`],['Sciatica',`${D.sciatica??'–'}/3`],['Disability (ODI)',`${odiTotal()}/10 · ${odiPoints()}pt`],['Body load (BMI)',`${bmiOf(D.weight,D.height).toFixed(1)} · ${bmiScore()}pt`],['Chronicity',`${D.chronicity||'–'} · ${chronScore()}pt`],['Red flags',hasRedFlag()?'Present':'None']]
+    render:()=>{const t=sssTotal(),sv=severity(t),rows=[['Back pain (VAS)',`${D.vas??'–'}/10 · ${vasPoints()}pt`],['Sciatica',`${D.sciatica??'–'}/3`],['Disability (ODI)',`${odiTotal()}/10 · ${odiPoints()}pt`],['Body load (BMI)',`${bmiOf(D.weight,D.height).toFixed(1)} · ${bmiScore()}pt`],['Chronicity',`${D.chronicity||'–'} · ${chronScore()}pt`],['Red flags',hasRedFlag()?'Present':'None']]
       return `<div class="hero" style="margin-top:0"><img src="assets/stand.webp" alt="" style="height:180px"/><div class="lumglow" style="background:radial-gradient(circle,${sv.hex},transparent 62%);opacity:.7"></div></div>
       <div class="eyebrow" style="text-align:center">Spine Severity Score</div>
       <div class="ring"><svg width="168" height="168" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/><circle id="rring" cx="60" cy="60" r="52" fill="none" stroke="${sv.color}" stroke-width="10" stroke-linecap="round" stroke-dasharray="326" stroke-dashoffset="326"/></svg><div class="num"><b id="rnum" style="color:${sv.color}">0</b><span>out of 11</span></div></div>
       <div style="text-align:center"><span class="tag" style="background:${sv.color}22;color:${sv.color}">${sv.band}</span></div>
-      ${hasRedFlag()?`<div class="warn" style="margin-top:14px"><span style="font-size:16px;line-height:1">⚠</span><div><b style="display:block;margin-bottom:3px">Possible serious symptom flagged</b>Please seek urgent medical evaluation — don’t rely on this score.</div></div>`:''}
-      <div class="mgmt" style="background:${sv.color}14;border:1px solid ${sv.color}40">
-        <div style="font-size:14px;font-weight:600;color:#fff;line-height:1.45">${sv.desc}</div>
-        <div style="margin-top:11px;padding-top:11px;border-top:1px solid ${sv.color}33;display:flex;gap:10px;align-items:flex-start">
-          <span style="font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:${sv.color};font-weight:700;flex:none;margin-top:2px">Next step</span>
-          <span style="font-size:13px;color:#dbe8fa;line-height:1.45">${sv.mgmt}</span>
-        </div></div>
-      <div class="card"><h3>Score breakdown</h3><div class="bd">${rows.map(([n,v])=>`<div class="b"><span class="n">${n}</span><span class="v">${v}</span></div>`).join('')}</div></div>
+      ${hasRedFlag()?`<div class="warn" style="margin-top:14px">${icon('shield',16)}<div><b style="display:block;margin-bottom:3px">Possible serious symptom flagged</b>Please seek urgent medical evaluation — don’t rely on this score.</div></div>`:''}
+      <div class="mgmt" style="background:${sv.color}14;border:1px solid ${sv.color}40"><div style="font-size:14px;font-weight:600;color:#fff;line-height:1.45">${sv.desc}</div><div style="margin-top:11px;padding-top:11px;border-top:1px solid ${sv.color}33;display:flex;gap:10px;align-items:flex-start"><span style="font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:${sv.color};font-weight:700;flex:none;margin-top:2px">Next step</span><span style="font-size:13px;color:#dbe8fa;line-height:1.45">${sv.mgmt}</span></div></div>
+      <div class="card"><h3>${icon('plan',15,'ci')} Score breakdown</h3><div class="bd">${rows.map(([n,v])=>`<div class="b"><span class="n">${n}</span><span class="v">${v}</span></div>`).join('')}</div></div>
       <div class="trust"><span class="by">${APP.doctor}</span> · Dept. of Spine Surgery — SSS<br/><a href="${APP.links.website}" target="_blank" rel="noopener">Website</a> · <a href="${APP.links.youtube}" target="_blank" rel="noopener">Videos</a> · <a href="${APP.links.research}" target="_blank" rel="noopener">Research</a></div>
-      <div class="disc">Lower-back screening & decision support only — not a diagnosis.</div>` },
+      <div class="disc">Lower-back screening & decision support only — not a diagnosis.</div>`},
     init:()=>{ const t=sssTotal(),sv=severity(t),ring=document.getElementById('rring'),num=document.getElementById('rnum')
       requestAnimationFrame(()=>{ring.style.transition='stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)';ring.style.strokeDashoffset=326-(t/11)*326})
       let n=0;const iv=setInterval(()=>{n++;if(n>=t){n=t;clearInterval(iv)}num.textContent=n},90) },
     cta:'See my next steps →',next:'__finish'},
 ]
 
-/* ════════════ FLOW ENGINE (onboarding) ════════════ */
+/* ════════════ flow engine ════════════ */
 let idx=0
 const root=document.getElementById('app')
-function shell(inner){ return `<div class="hud"><button class="bk" id="bk">‹</button><div class="logo"><svg width="22" height="22" viewBox="0 0 24 24"><g fill="#6fe0ff"><rect x="9" y="3" width="6" height="2.4" rx="1.2"/><rect x="8.4" y="6.4" width="7.2" height="2.6" rx="1.3"/><rect x="8.1" y="9.8" width="7.8" height="2.7" rx="1.35"/><rect x="8.1" y="13.2" width="7.8" height="2.7" rx="1.35"/></g><g fill="#ffb020"><rect x="9" y="16.8" width="6" height="2.5" rx="1.25"/><rect x="9" y="20" width="6" height="2.4" rx="1.2"/></g></svg>BackSignal</div><div class="cert" id="certpts">✚ Doctor-verified</div></div><div class="prog"><i id="prog"></i></div><div class="steplbl"><span id="lblL"></span><span id="lblR"></span></div><div class="scroll" id="scroll">${inner}</div><div class="foot" id="foot"></div>` }
 const $=id=>document.getElementById(id)
-function setFoot(){ const s=STEPS[idx]; const gated=s.video&&!watched[s.id]; const label=typeof s.cta==='function'?s.cta():s.cta
-  const dis=gated||(s.canNext&&!s.canNext()); $('foot').innerHTML=`<button class="cta" id="cta" ${dis?'disabled':''}>${label}${s.result?'':' →'}</button>`
-  $('cta').onclick=()=>{ if(dis)return; s.next==='__finish'?finishOnboarding():goTo(s.next) } }
-function renderStep(){ const s=STEPS[idx]
-  root.innerHTML=shell(s.render()); $('prog').style.width=(s.prog*100)+'%'; $('lblL').textContent=s.label[0]; $('lblR').textContent=s.label[1]
-  if(s.back){ $('bk').style.display='grid'; $('bk').onclick=()=>{idx=Math.max(0,idx-1);renderStep()} }
-  $('scroll').scrollTop=0
-  // video gating: lock the form until watched
-  const gated=s.video&&!watched[s.id]; const gw=$('scroll').querySelector('.gatewrap')
-  if(gated&&gw){ gw.classList.add('gated'); const lm=document.createElement('div'); lm.className='lockmsg'; lm.innerHTML='🔒 Watch the 5-second clip to unlock this step'; gw.parentNode.insertBefore(lm,gw) }
+function animKids(){ [...$('scroll').children].forEach((c,i)=>{c.style.animationDelay=(i*0.05)+'s'}) }
+function logoSvg(){ return `<svg width="22" height="22" viewBox="0 0 24 24"><g fill="#6fe0ff"><rect x="9" y="3" width="6" height="2.4" rx="1.2"/><rect x="8.4" y="6.4" width="7.2" height="2.6" rx="1.3"/><rect x="8.1" y="9.8" width="7.8" height="2.7" rx="1.35"/><rect x="8.1" y="13.2" width="7.8" height="2.7" rx="1.35"/></g><g fill="#ffb020"><rect x="9" y="16.8" width="6" height="2.5" rx="1.25"/><rect x="9" y="20" width="6" height="2.4" rx="1.2"/></g></svg>` }
+function shell(inner){ return `<div class="hud"><button class="bk" id="bk">${icon('arrow',16)}</button><div class="logo">${logoSvg()}BackSignal</div><div class="cert">${icon('shield',13)} Doctor-verified</div></div><div class="prog"><i id="prog"></i></div><div class="steplbl"><span id="lblL"></span><span id="lblR"></span></div><div class="scroll" id="scroll">${inner}</div><div class="foot" id="foot"></div>` }
+function setFoot(){ const s=STEPS[idx],gated=s.video&&s.gate!==false&&!watched[s.id],label=typeof s.cta==='function'?s.cta():s.cta,dis=gated||(s.canNext&&!s.canNext())
+  $('foot').innerHTML=`<button class="cta" id="cta" ${dis?'disabled':''}>${label}${s.result?'':''}</button>`; $('cta').onclick=()=>{ if(dis)return; s.next==='__finish'?finishOnboarding():goTo(s.next) } }
+function renderStep(){ const s=STEPS[idx]; root.innerHTML=shell(s.render()); $('prog').style.width=(s.prog*100)+'%'; $('lblL').textContent=s.label[0]; $('lblR').textContent=s.label[1]
+  if(s.back){$('bk').style.display='flex';$('bk').querySelector('svg').style.transform='scaleX(-1)';$('bk').onclick=()=>{idx=Math.max(0,idx-1);renderStep()}}
+  $('scroll').scrollTop=0; animKids()
+  const gated=s.video&&s.gate!==false&&!watched[s.id],gw=$('scroll').querySelector('.gatewrap')
+  if(gated&&gw){gw.classList.add('gated');const lm=document.createElement('div');lm.className='lockmsg';lm.innerHTML=icon('play',15)+' Watch the 5-second clip to unlock this step';gw.parentNode.insertBefore(lm,gw)}
   $('scroll').querySelectorAll('[data-vid]').forEach(el=>el.onclick=()=>openVideo(el.dataset.vid,el.dataset.vk,()=>renderStep()))
   s.init&&s.init(); setFoot()
-  // auto-open the gate video on first arrival
-  if(gated&&!s._auto){ s._auto=true; setTimeout(()=>openVideo(s.video,s.id,()=>renderStep()),360) }
+  if(gated&&!s._auto){s._auto=true;setTimeout(()=>openVideo(s.video,s.id,()=>renderStep()),360)}
 }
-function goTo(id){ const i=STEPS.findIndex(s=>s.id===id); if(i>=0){idx=i;renderStep()} }
-function finishOnboarding(){
-  const t=sssTotal(),sv=severity(t)
-  S.profile={...D,sssScore:t,band:sv.band,completedAt:todayStr()}
-  S.onboarded=true
-  // seed today's tracking from device/baseline
-  S.today={ sitting:D.habits.sitting,walking:D.habits.walking,exercise:D.habits.exercise*10,sleep:D.habits.sleep }
-  S.lastSync=todayStr(); S.streak=Math.max(1,S.streak)
+function goTo(id){const i=STEPS.findIndex(s=>s.id===id);if(i>=0){idx=i;renderStep()}}
+function seedHistory(){ const h=[]; for(let i=6;i>=0;i--){ h.push({date:i,walking:Math.round(22+Math.random()*40),sitting:Math.round(6+Math.random()*5),sleep:+(5.5+Math.random()*2.5).toFixed(1),exercise:Math.round(Math.random()*30)}) } return h }
+function pickTasks(){ // adapt to score/habits
+  const pool=[...TASK_POOL]; const pri=[]
+  const t=S.today||{}
+  if((t.sitting||8)>TARGETS.sitting)pri.push('break'); if((t.walking||30)<TARGETS.walking)pri.push('walk10'); if((D.sciatica||0)>=1||odiTotal()>3)pri.push('catcow'); if((t.sleep||7)<TARGETS.sleep)pri.push('winddown')
+  const order=[...new Set([...pri,...pool.map(p=>p.id)])]
+  return order.slice(0,3)
+}
+function finishOnboarding(){ const t=sssTotal(),sv=severity(t)
+  S.profile={...D,sssScore:t,band:sv.band,completedAt:todayStr()}; S.onboarded=true
+  S.today={sitting:D.habits.sitting,walking:D.habits.walking,exercise:D.habits.exercise*10,sleep:D.habits.sleep}
+  S.history=seedHistory(); S.lastSync=todayStr(); S.streak=Math.max(1,S.streak); S.tasks=pickTasks()
   const firstTime=!S._awarded; S._awarded=true; save()
-  if(firstTime) award(200,'Assessment complete')      // +200 once (award handles save + toast)
-  renderApp('plan')
+  if(firstTime)award(200,'Assessment complete',[innerWidth/2,innerHeight*0.4]); renderApp('plan')
 }
 
-/* ════════════ MAIN APP (post-onboard) ════════════ */
+/* ════════════ MAIN APP ════════════ */
 let tab='today'
-function appShell(inner,active){
-  return `<div class="hud"><div class="logo"><svg width="22" height="22" viewBox="0 0 24 24"><g fill="#6fe0ff"><rect x="9" y="3" width="6" height="2.4" rx="1.2"/><rect x="8.4" y="6.4" width="7.2" height="2.6" rx="1.3"/><rect x="8.1" y="9.8" width="7.8" height="2.7" rx="1.35"/><rect x="8.1" y="13.2" width="7.8" height="2.7" rx="1.35"/></g><g fill="#ffb020"><rect x="9" y="16.8" width="6" height="2.5" rx="1.25"/><rect x="9" y="20" width="6" height="2.4" rx="1.2"/></g></svg>BackSignal</div><div class="pts">✦ ${S.points}</div></div>
-    <div class="scroll" id="scroll" style="padding-bottom:96px">${inner}</div>
-    <div class="tabbar">${[['today','🏠','Today'],['plan','🧭','Plan'],['rewards','🎁','Rewards'],['profile','👤','Profile']].map(([k,i,l])=>`<button data-tab="${k}" class="${active===k?'on':''}"><span class="ti">${i}</span>${l}</button>`).join('')}</div>` }
+function appShell(inner,active){ return `<div class="hud"><div class="logo">${logoSvg()}BackSignal</div><div class="pts">${icon('spark',14)} ${S.points}</div></div>
+  <div class="scroll app" id="scroll">${inner}</div>
+  <div class="tabbar">${[['today','home','Today'],['plan','plan','Plan'],['rewards','rewards','Rewards'],['profile','profile','Profile']].map(([k,i,l])=>`<button data-tab="${k}" class="${active===k?'on':''}">${icon(i,21)}${l}</button>`).join('')}</div>` }
 function renderApp(t){ tab=t||tab
-  if(tab==='today')root.innerHTML=appShell(viewToday(),'today')
-  else if(tab==='plan')root.innerHTML=appShell(viewPlan(),'plan')
-  else if(tab==='rewards')root.innerHTML=appShell(viewRewards(),'rewards')
-  else root.innerHTML=appShell(viewProfile(),'profile')
-  root.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>renderApp(b.dataset.tab))
+  root.innerHTML=appShell(tab==='today'?viewToday():tab==='plan'?viewPlan():tab==='rewards'?viewRewards():viewProfile(),tab)
+  animKids(); root.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>renderApp(b.dataset.tab))
   if(tab==='today')initToday(); else if(tab==='plan')initPlan(); else if(tab==='rewards')initRewards(); else initProfile()
 }
+function firstName(){ return (S.profile.name||'').split(' ')[0]||'there' }
+function greetWord(){const h=new Date().getHours();return h<12?'Good morning':h<18?'Good afternoon':'Good evening'}
 function habitStatus(k,v){ const tgt=TARGETS[k]
-  if(k==='sitting')return {ok:v<=tgt,pct:Math.min(100,(tgt/Math.max(v,1))*100),col:v<=tgt?'var(--green)':v<=tgt+2?'var(--amber)':'var(--red)'}
-  const pct=Math.min(100,v/tgt*100); return {ok:v>=tgt,pct,col:v>=tgt?'var(--green)':pct>=55?'var(--amber)':'var(--red)'}
-}
-function viewToday(){
-  const p=S.profile,sv=severity(p.sssScore),t=S.today||{sitting:8,walking:30,exercise:15,sleep:7}
-  const hist=S.history.slice(-7); const bars=hist.length?hist:[...Array(7)].map(()=>({walking:Math.round(20+Math.random()*40)}))
-  const units={sitting:'h',walking:'min',exercise:'min',sleep:'h'}
-  return `<div class="greet">${greetWord()}<b>Let’s protect your lower back</b></div>
-    <div class="scorecard"><div class="mini"><svg width="78" height="78" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12"/><circle cx="60" cy="60" r="50" fill="none" stroke="${sv.color}" stroke-width="12" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="${314-(p.sssScore/11)*314}"/></svg><div class="n" style="color:${sv.color}">${p.sssScore}</div></div>
-      <div class="info"><b>Spine Severity Score</b><div class="band" style="color:${sv.color}">${sv.band}</div><p>${sv.mgmt}</p></div></div>
-    <div class="stats"><div class="stat"><div class="k">Points</div><div class="v" style="color:var(--cyan)">${S.points}</div></div><div class="stat"><div class="k">Day streak</div><div class="v">${S.streak} <small>🔥</small></div></div></div>
-    <div class="card"><h3>Today’s habits ${S.device?'· from '+S.device:''}</h3>
-      ${['sitting','walking','exercise','sleep'].map(k=>{const v=t[k],st=habitStatus(k,v);return `<div class="habit"><div class="pic"><img src="${POSE[k]}" alt=""/></div><div class="hb"><div class="top"><b>${k[0].toUpperCase()+k.slice(1)}</b><span class="v"><b>${v}</b> ${units[k]}</span></div><div class="bar"><i style="width:${st.pct}%;background:${st.col}"></i></div><div class="goal">${st.ok?'✓ Goal met':'Goal: '+(k==='sitting'?'≤':'≥')+TARGETS[k]+' '+units[k]}</div></div></div>`}).join('')}
-      <button class="cta syncbtn" id="sync">${S.lastSync===todayStr()?'✓ Synced today — re-sync':'⟳ Sync today from '+(S.device||'device')}</button></div>
-    <div class="card"><h3>This week · walking</h3><div class="spark">${[...Array(7)].map((_,i)=>{const v=(bars[i]&&bars[i].walking)||30;return `<i style="height:${Math.min(100,v/60*100)}%"></i>`}).join('')}</div></div>`
-}
-function initToday(){ const b=$('sync'); if(b)b.onclick=()=>{ const first=S.lastSync!==todayStr()
-    // simulate a daily pull from the connected device
-    const dev=S.device; const r=()=>Math.random()
-    S.today={ sitting:Math.round(6+r()*5), walking:Math.round(25+r()*45), exercise:Math.round(r()*35), sleep:+(5.5+r()*2.5).toFixed(1) }
-    S.history.push({date:todayStr(),...S.today}); if(S.history.length>14)S.history.shift()
-    if(first){ S.streak+=1; let gained=20; ['sitting','walking','exercise','sleep'].forEach(k=>{if(habitStatus(k,S.today[k]).ok)gained+=25})
-      S.lastSync=todayStr(); S.points+=gained; save(); award(gained,'Daily sync · '+S.streak+'-day streak') }
-    else{ save() }
-    renderApp('today') } }
-function viewRewards(){
-  return `<div class="ptbig"><b>✦ ${S.points}</b><span>BackSignal points</span></div>
-    <p class="sub" style="text-align:center">Earn points from your assessment and daily habit goals — redeem them for real rewards.</p>
-    ${REWARDS.map(r=>{const got=S.redeemed.includes(r.id),can=S.points>=r.cost&&!got
-      return `<div class="reward ${got?'got':''}"><div class="ic">${r.ic}</div><div class="rb"><b>${r.name}</b><span>${r.desc}</span></div>
-        <button class="rc" data-rw="${r.id}" ${(!can&&!got)?'disabled':''}>${got?'✓ Redeemed':r.cost+' ✦'}</button></div>`}).join('')}
-    <div class="disc">Rewards are illustrative for this prototype.</div>`
-}
-function initRewards(){ root.querySelectorAll('[data-rw]').forEach(b=>b.onclick=()=>{ const r=REWARDS.find(x=>x.id===b.dataset.rw)
-    if(S.redeemed.includes(r.id)||S.points<r.cost)return; S.points-=r.cost; S.redeemed.push(r.id); save(); award(0,'Redeemed: '+r.name); renderApp('rewards') }) }
-function viewProfile(){
-  const p=S.profile,sv=severity(p.sssScore)
-  return `<div class="card" style="margin-top:8px"><h3>Your profile</h3><div class="bd" style="margin-top:10px">
-    <div class="b"><span class="n">Age / Sex</span><span class="v">${p.age} · ${p.sex||'–'}</span></div>
-    <div class="b"><span class="n">BMI</span><span class="v">${bmiOf(p.weight,p.height).toFixed(1)}</span></div>
-    <div class="b"><span class="n">Latest score</span><span class="v" style="color:${sv.color}">${p.sssScore}/11 · ${sv.band}</span></div>
-    <div class="b"><span class="n">Health device</span><span class="v">${S.device||'Not connected'}</span></div>
-    <div class="b"><span class="n">Assessed</span><span class="v">${p.completedAt}</span></div></div></div>
-    <div class="trust" style="border:0"><span class="by">Verified by ${APP.doctor}</span><br/>Dept. of Spine Surgery — Spine Severity System (SSS)<br/><a href="${APP.links.website}" target="_blank" rel="noopener">Website</a> · <a href="${APP.links.youtube}" target="_blank" rel="noopener">Videos</a> · <a href="${APP.links.research}" target="_blank" rel="noopener">Research</a></div>
-    <button class="cta sec" id="retake" style="margin-top:18px">↻ Retake assessment</button>
-    <button class="cta sec" id="reset">Reset app</button>
-    <div class="disc">Screening & decision support only — not a diagnosis or a substitute for clinical judgment.</div>`
-}
-function initProfile(){ $('retake').onclick=()=>{ D={age:S.profile.age,sex:S.profile.sex,occupation:S.profile.occupation,height:S.profile.height,weight:S.profile.weight,vas:null,sciatica:null,odi:{Walking:0,Sitting:0,Standing:0,Sleep:0,'Daily activities':0},chronicity:null,redflags:[],habits:{sitting:8,walking:30,exercise:2,sleep:7}}; watched={}; STEPS.forEach(s=>s._auto=false); idx=STEPS.findIndex(s=>s.id==='vas'); renderStep() }
-  $('reset').onclick=()=>{ localStorage.removeItem(KEY); location.reload() } }
-function greetWord(){ const h=new Date().getHours(); return h<12?'Good morning':h<18?'Good afternoon':'Good evening' }
+  if(k==='sitting')return{ok:v<=tgt,pct:Math.min(100,(tgt/Math.max(v,1))*100),col:v<=tgt?'var(--green)':v<=tgt+2?'var(--amber)':'var(--red)'}
+  const pct=Math.min(100,v/tgt*100);return{ok:v>=tgt,pct,col:v>=tgt?'var(--green)':pct>=55?'var(--amber)':'var(--red)'} }
 
-/* ── PLAN (next steps, grounded in SSS management bands + Daily-Habit guidance) ── */
-function planData(){
-  const p=S.profile, sv=severity(p.sssScore), t=S.today||{}
-  const clinical={
-    'LOW':{t:'Self-care plan',d:'Your score is low — keep it that way with good posture, daily movement and exercise. Re-check in about 4 weeks.'},
-    'MILD–MODERATE':{t:'Physiotherapy + habit correction',d:'Begin guided physiotherapy and correct the daily habits below. Get a clinical evaluation if there’s no improvement in 2 weeks.'},
-    'MODERATE–SEVERE':{t:'See a spine specialist',d:'Your score suggests a spine-specialist consultation for proper assessment and advanced care.'},
-    'SEVERE / HIGH RISK':{t:'Urgent specialist care',d:'Seek urgent spine-specialist evaluation now — please don’t wait on this.'},
-  }[sv.band]
-  const acts=[]
-  const add=(id,emoji,title,why,met)=>acts.push({id,emoji,title,why,met})
-  if(t.sitting!=null)  add('sit','🪑','Stand or walk 2–3 min every 30 min','Prolonged sitting raises lumbar disc pressure, weakens the core and collapses posture.', t.sitting<=TARGETS.sitting)
-  if(t.walking!=null)  add('walk','🚶','Build toward 45 minutes of walking a day','Low walking reduces spinal mobility and endurance.', t.walking>=TARGETS.walking)
-  if(t.exercise!=null) add('ex','🏋️','Core & back strengthening, 3×/week','Lack of exercise weakens the muscles that support the spine.', t.exercise>=TARGETS.exercise)
-  if(t.sleep!=null)    add('sleep','😴','Aim for 7–8 hours of sleep','Poor sleep increases inflammation and delays recovery.', t.sleep>=TARGETS.sleep)
-  const notes=[]
-  if((p.sciatica||0)>=2) notes.push('Leg pain or numbness: avoid prolonged bending and heavy strain. If it worsens or affects walking, see a specialist.')
-  if(p.chronicity==='chronic') notes.push('Pain lasting over 6 weeks responds better to a structured program than to rest — stay active within comfort.')
-  if((p.vas||0)>=7) notes.push('High pain right now: short-term relief plus gentle movement; avoid prolonged bed rest.')
-  return {sv,clinical,acts,notes,redflag:hasRedFlag()}
+function viewToday(){ const p=S.profile,sv=severity(p.sssScore),t=S.today||{sitting:8,walking:30,exercise:15,sleep:7},units={sitting:'h',walking:'min',exercise:'min',sleep:'h'}
+  S.tasks=S.tasks||pickTasks()
+  const tasks=S.tasks.map(id=>TASK_POOL.find(x=>x.id===id)).filter(Boolean)
+  const hist=S.history.length?S.history:seedHistory()
+  return `<div class="greet">${greetWord()}<b>${firstName()}, protect your lower back</b></div>
+    <div class="scorecard"><div class="mini"><svg width="78" height="78" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12"/><circle cx="60" cy="60" r="50" fill="none" stroke="${sv.color}" stroke-width="12" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="${314-(p.sssScore/11)*314}"/></svg><div class="n" style="color:${sv.color}">${p.sssScore}</div></div><div class="info"><b>Spine Severity Score</b><div class="band" style="color:${sv.color}">${sv.band}</div><p>${sv.mgmt}</p></div></div>
+    <div class="stats"><div class="stat"><div class="k">${icon('spark',13,'ci')} Points</div><div class="v" style="color:var(--cyan)">${S.points}</div></div><div class="stat"><div class="k">${icon('flame',13)} Streak</div><div class="v">${S.streak} <small>days</small></div></div></div>
+    <div class="card"><h3>${icon('bolt',15,'ci')} Today’s tasks</h3><div id="tasks">${tasks.map(taskHTML).join('')}</div></div>
+    <div class="card"><h3>${icon('walk',15,'ci')} Today’s habits ${S.device?'· '+S.device:''}</h3>
+      ${['sitting','walking','exercise','sleep'].map(k=>{const v=t[k],st=habitStatus(k,v);return `<div class="habit"><div class="pic"><img src="${POSE[k]}" alt=""/></div><div class="hb"><div class="top"><b>${k[0].toUpperCase()+k.slice(1)}</b><span class="v"><b>${v}</b> ${units[k]}</span></div><div class="bar"><i style="width:${st.pct}%;background:${st.col}"></i></div><div class="goal">${st.ok?icon('check',12)+' Goal met':'Goal '+(k==='sitting'?'≤':'≥')+TARGETS[k]+' '+units[k]}</div></div></div>`}).join('')}
+      <button class="cta sec" id="sync" style="margin-top:12px">${S.lastSync===todayStr()?icon('check',16)+' Synced today · re-sync':icon('walk',16)+' Sync today from '+(S.device||'device')}</button></div>
+    ${insightsCard(hist)}`
 }
-function viewPlan(){
-  const d=planData(); S.planDone=S.planDone||[]
+function taskHTML(tk){ return `<div class="task" data-task="${tk.id}"><div class="ti">${icon(tk.ic,20)}</div><div class="tb"><b>${tk.title}</b><span>${tk.sub}</span></div><div class="pts">+${tk.pts}</div><button class="tc" aria-label="done">${icon('check',16)}</button></div>` }
+function insightsCard(hist){ const metrics=[['walking','Walking','min',TARGETS.walking,false],['sitting','Sitting','h',TARGETS.sitting,true],['sleep','Sleep','h',TARGETS.sleep,false]]
+  const avg=k=>Math.round(hist.reduce((a,b)=>a+(b[k]||0),0)/hist.length*10)/10
+  const wMet=hist.filter(d=>(d.walking||0)>=TARGETS.walking).length
+  const insight=`You hit your walking goal <b>${wMet} of 7</b> days. ${avg('sitting')>TARGETS.sitting?'Sitting is your biggest risk — averaging '+avg('sitting')+'h/day.':'Nice — your sitting is in a healthy range.'}`
+  return `<div class="card ins"><h3>${icon('bolt',15,'ci')} This week’s insights</h3>
+    ${metrics.map(([k,t,u,tgt,low])=>{const a=avg(k);const max=Math.max(tgt*1.4,...hist.map(d=>d[k]||0))
+      return `<div class="insrow"><div class="t"><span>${t}</span><span>avg <b>${a}${u}</b> · goal ${low?'≤':'≥'}${tgt}${u}</span></div><div class="spark">${hist.map(d=>{const v=d[k]||0,met=low?v<=tgt:v>=tgt;return `<i style="height:${Math.max(8,Math.min(100,v/max*100))}%;background:${met?'var(--green)':'var(--amber)'}"></i>`}).join('')}</div></div>`}).join('')}
+    <div class="insight">${icon('spark',15,'ci')}<div>${insight}</div></div></div>`
+}
+function initToday(){
+  // tasks: complete → confetti + slide out → new slides in
+  root.querySelectorAll('.task').forEach(bindTask)
+  const sb=$('sync'); if(sb)sb.onclick=()=>{ const first=S.lastSync!==todayStr(),r=()=>Math.random()
+    S.today={sitting:Math.round(6+r()*5),walking:Math.round(25+r()*45),exercise:Math.round(r()*35),sleep:+(5.5+r()*2.5).toFixed(1)}
+    S.history.push({date:todayStr(),...S.today}); if(S.history.length>14)S.history.shift()
+    if(first){S.streak+=1;let g=20;['sitting','walking','exercise','sleep'].forEach(k=>{if(habitStatus(k,S.today[k]).ok)g+=25});S.lastSync=todayStr();S.points+=g;save();award(g,'Daily sync · '+S.streak+'-day streak',[innerWidth/2,innerHeight*0.5])}else save()
+    renderApp('today') }
+}
+function bindTask(node){ node.querySelector('.tc').onclick=btnHandler(node) }
+function btnHandler(node){ return ()=>{ if(node.classList.contains('done'))return; const id=node.dataset.task,tk=TASK_POOL.find(x=>x.id===id),r=node.querySelector('.tc').getBoundingClientRect()
+  node.classList.add('done'); confetti(r.left+r.width/2,r.top+r.height/2); award(tk.pts,'Task done'); S.tasksDone=(S.tasksDone||0)+1
+  const used=new Set(S.tasks); const next=TASK_POOL.find(x=>!used.has(x.id))||TASK_POOL[0]; S.tasks=S.tasks.map(x=>x===id?next.id:x); save()
+  setTimeout(()=>{node.classList.add('out');setTimeout(()=>{const nw=document.createElement('div');nw.innerHTML=taskHTML(next).trim();const nn=nw.firstChild;nn.classList.add('in');node.replaceWith(nn);bindTask(nn)},420)},520) } }
+
+/* PLAN */
+function planData(){ const p=S.profile,sv=severity(p.sssScore),t=S.today||{}
+  const clinical={'LOW':{t:'Self-care plan',d:'Your score is low — keep it that way with good posture, daily movement and exercise. Re-check in about 4 weeks.'},'MILD–MODERATE':{t:'Physiotherapy + habit correction',d:'Begin guided physiotherapy and correct the daily habits below. Get a clinical evaluation if there’s no improvement in 2 weeks.'},'MODERATE–SEVERE':{t:'See a spine specialist',d:'Your score suggests a spine-specialist consultation for proper assessment and advanced care.'},'SEVERE / HIGH RISK':{t:'Urgent specialist care',d:'Seek urgent spine-specialist evaluation now — please don’t wait on this.'}}[sv.band]
+  const acts=[];const add=(id,ic,title,why,met)=>acts.push({id,ic,title,why,met})
+  if(t.sitting!=null)add('sit','sit','Stand or walk 2–3 min every 30 min','Prolonged sitting raises lumbar disc pressure, weakens the core and collapses posture.',t.sitting<=TARGETS.sitting)
+  if(t.walking!=null)add('walk','walk','Build toward 45 minutes of walking a day','Low walking reduces spinal mobility and endurance.',t.walking>=TARGETS.walking)
+  if(t.exercise!=null)add('ex','exercise','Core & back strengthening, 3×/week','Lack of exercise weakens the muscles that support the spine.',t.exercise>=TARGETS.exercise)
+  if(t.sleep!=null)add('sleep','sleep','Aim for 7–8 hours of sleep','Poor sleep increases inflammation and delays recovery.',t.sleep>=TARGETS.sleep)
+  const notes=[]; if((p.sciatica||0)>=2)notes.push('Leg pain or numbness: avoid prolonged bending and heavy strain. If it worsens or affects walking, see a specialist.'); if(p.chronicity==='chronic')notes.push('Pain lasting over 6 weeks responds better to a structured program than to rest — stay active within comfort.'); if((p.vas||0)>=7)notes.push('High pain right now: short-term relief plus gentle movement; avoid prolonged bed rest.')
+  return{sv,clinical,acts,notes,redflag:hasRedFlag()} }
+function viewPlan(){ const d=planData();S.planDone=S.planDone||[]
   return `<div class="eyebrow">Your next steps</div><h1 class="q" style="font-size:22px">A plan for your lower back</h1>
-    ${d.redflag?`<div class="warn" style="margin-top:14px">⚠ A red flag was indicated — please seek <b>urgent spine-specialist evaluation</b> before following the rest of this plan.</div>`:''}
-    <div class="mgmt" style="background:${d.sv.color}14;border:1px solid ${d.sv.color}40;margin-top:14px"><b>${d.clinical.t}</b><br/><span style="color:var(--mut)">${d.clinical.d}</span>
-      ${d.sv.band==='LOW'?'':`<button class="cta" id="findcare" style="margin-top:12px">Find care / book →</button>`}</div>
-    <div class="card"><h3>Correct your daily habits</h3>
-      ${d.acts.map(a=>{const done=S.planDone.includes(a.id),ok=a.met||done;return `<div class="flag ${ok?'on':''}" data-act="${a.id}" style="${a.met?'border-color:rgba(52,211,153,.35)':''}"><span class="bx" style="${ok?'background:var(--green);border-color:var(--green)':''}">${ok?'✓':''}</span><div><div style="font-size:13px;font-weight:600">${a.emoji} ${a.title}</div><div style="font-size:11.5px;color:var(--mut2);margin-top:3px;line-height:1.45">${a.met?'You’re already on target — keep it up.':a.why}</div></div></div>`}).join('')}</div>
-    ${d.notes.length?`<div class="card"><h3>Notes for your symptoms</h3>${d.notes.map(n=>`<p class="sub" style="margin-top:8px">• ${n}</p>`).join('')}</div>`:''}
+    ${d.redflag?`<div class="warn" style="margin-top:14px">${icon('shield',16)}<div>A red flag was indicated — please seek <b>urgent spine-specialist evaluation</b> before following the rest of this plan.</div></div>`:''}
+    <div class="mgmt" style="background:${d.sv.color}14;border:1px solid ${d.sv.color}40;margin-top:14px"><b style="font-size:14.5px">${d.clinical.t}</b><div style="color:var(--mut);font-size:13px;margin-top:6px;line-height:1.5">${d.clinical.d}</div>${d.sv.band==='LOW'?'':`<button class="cta" id="findcare" style="margin-top:13px">${icon('stetho',16)} Find care / book</button>`}</div>
+    <div class="card"><h3>${icon('check',15,'ci')} Correct your daily habits</h3>${d.acts.map(a=>{const done=S.planDone.includes(a.id),ok=a.met||done;return `<div class="flag ${ok?'on':''}" data-act="${a.id}" style="${a.met?'border-color:rgba(52,211,153,.35)':''};margin-top:9px"><span class="bx" style="${ok?'background:var(--green);border-color:var(--green)':''}">${ok?icon('check',13):''}</span><div style="flex:1"><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px">${icon(a.ic,16,'ci')}${a.title}</div><div style="font-size:11.5px;color:var(--mut2);margin-top:4px;line-height:1.45">${a.met?'You’re already on target — keep it up.':a.why}</div></div></div>`}).join('')}</div>
+    ${d.notes.length?`<div class="card"><h3>${icon('plan',15,'ci')} Notes for your symptoms</h3>${d.notes.map(n=>`<p class="sub" style="margin-top:9px">• ${n}</p>`).join('')}</div>`:''}
     <div class="card" style="background:rgba(56,189,248,.06)"><p class="sub" style="margin-top:0;color:#c2d6ef">Most chronic back pain develops from unhealthy habits repeated daily. Early lifestyle correction can prevent long-term spine degeneration and disability.</p><div style="font-size:11px;color:var(--mut2);margin-top:8px">— ${APP.doctor}, Spine Severity System</div></div>
     <div class="trust" style="border:0"><a href="${APP.links.website}" target="_blank" rel="noopener">Website</a> · <a href="${APP.links.youtube}" target="_blank" rel="noopener">Exercise videos</a> · <a href="${APP.links.research}" target="_blank" rel="noopener">Research</a></div>`
 }
-function initPlan(){
-  S.planDone=S.planDone||[]
-  root.querySelectorAll('[data-act]').forEach(el=>el.onclick=()=>{ const id=el.dataset.act, a=planData().acts.find(x=>x.id===id)
-    if(!a||a.met||S.planDone.includes(id))return; S.planDone.push(id); save(); award(15,'Step committed'); renderApp('plan') })
-  const fc=$('findcare'); if(fc)fc.onclick=()=>window.open(APP.links.website,'_blank')
-}
+function initPlan(){ S.planDone=S.planDone||[]; root.querySelectorAll('[data-act]').forEach(el=>el.onclick=()=>{const id=el.dataset.act,a=planData().acts.find(x=>x.id===id); if(!a||a.met||S.planDone.includes(id))return; S.planDone.push(id); save(); const r=el.getBoundingClientRect(); award(15,'Step committed',[r.left+r.width/2,r.top]); renderApp('plan')})
+  const fc=$('findcare'); if(fc)fc.onclick=()=>window.open(APP.links.website,'_blank') }
 
-/* ── boot ── */
+/* REWARDS */
+function viewRewards(){ return `<div class="ptbig"><b>${S.points}</b><span>BackSignal points</span></div><p class="sub" style="text-align:center">Earn points from your assessment, daily tasks and habit goals — redeem them for real rewards.</p>
+  ${REWARDS.map(r=>{const got=S.redeemed.includes(r.id),can=S.points>=r.cost&&!got;return `<div class="reward ${got?'got':''}"><div class="ic2">${icon(r.ic,21)}</div><div class="rb"><b>${r.name}</b><span>${r.desc}</span></div><button class="rc" data-rw="${r.id}" ${(!can&&!got)?'disabled':''}>${got?icon('check',14)+' Done':r.cost+' '+icon('spark',12)}</button></div>`}).join('')}
+  <div class="disc">Rewards are illustrative for this prototype.</div>` }
+function initRewards(){ root.querySelectorAll('[data-rw]').forEach(b=>b.onclick=()=>{const r=REWARDS.find(x=>x.id===b.dataset.rw); if(S.redeemed.includes(r.id)||S.points<r.cost)return; S.points-=r.cost; S.redeemed.push(r.id); save(); const rr=b.getBoundingClientRect(); award(0,'Redeemed: '+r.name,[rr.left,rr.top]); renderApp('rewards')}) }
+
+/* PROFILE */
+function viewProfile(){ const p=S.profile,sv=severity(p.sssScore)
+  return `<div class="card" style="margin-top:8px"><h3>${icon('profile',15,'ci')} ${p.name||'Your profile'}</h3><div class="bd" style="margin-top:10px">
+    <div class="b"><span class="n">Age · Sex</span><span class="v">${p.age} · ${p.sex||'–'}</span></div>
+    <div class="b"><span class="n">BMI</span><span class="v">${bmiOf(p.weight,p.height).toFixed(1)}</span></div>
+    <div class="b"><span class="n">Latest score</span><span class="v" style="color:${sv.color}">${p.sssScore}/11 · ${sv.band}</span></div>
+    <div class="b"><span class="n">Health device</span><span class="v">${S.device||'Not connected'}</span></div>
+    <div class="b"><span class="n">Tasks completed</span><span class="v">${S.tasksDone||0}</span></div>
+    <div class="b"><span class="n">Assessed</span><span class="v">${p.completedAt}</span></div></div></div>
+    <div class="trust" style="border:0"><span class="by">${icon('shield',13)} Verified by ${APP.doctor}</span><br/>Dept. of Spine Surgery — Spine Severity System (SSS)<br/><a href="${APP.links.website}" target="_blank" rel="noopener">Website</a> · <a href="${APP.links.youtube}" target="_blank" rel="noopener">Videos</a> · <a href="${APP.links.research}" target="_blank" rel="noopener">Research</a></div>
+    <button class="cta sec" id="retake" style="margin-top:18px">Retake assessment</button><button class="cta sec" id="reset">Reset app</button>
+    <div class="disc">Screening & decision support only — not a diagnosis or a substitute for clinical judgment.</div>` }
+function initProfile(){ $('retake').onclick=()=>{ D={name:S.profile.name,age:S.profile.age,sex:S.profile.sex,occupation:S.profile.occupation,height:S.profile.height,weight:S.profile.weight,vas:null,sciatica:null,odi:{Walking:0,Sitting:0,Standing:0,Sleep:0,'Daily activities':0},chronicity:null,redflags:[],habits:{sitting:8,walking:30,exercise:2,sleep:7}}; watched={}; STEPS.forEach(s=>s._auto=false); idx=STEPS.findIndex(s=>s.id==='vas'); renderStep() }
+  $('reset').onclick=()=>{localStorage.removeItem(KEY);location.reload()} }
+
+/* boot */
 if(S.onboarded&&S.profile){ Object.assign(D,S.profile); renderApp('today') } else { idx=0; renderStep() }
 </script>
 </body>
