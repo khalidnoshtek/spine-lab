@@ -1,785 +1,539 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Spine Lab</title>
-<meta name="description" content="An interactive spine-health assessment — map how your daily habits load your spine and get your Spine Score." />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>BackSignal — Your Personal Spine Severity Score</title>
+<meta name="description" content="BackSignal — a doctor-verified lower-back (lumbar) severity screening based on the Spine Severity System by Dr Ayush Sharma." />
 <meta name="theme-color" content="#02030a" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Spine Lab" />
+<meta name="apple-mobile-web-app-title" content="BackSignal" />
 <meta name="mobile-web-app-capable" content="yes" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%2302030a'/%3E%3Cg fill='%236fe0ff'%3E%3Crect x='9' y='3' width='6' height='2.4' rx='1.2'/%3E%3Crect x='8.4' y='6.4' width='7.2' height='2.6' rx='1.3'/%3E%3Crect x='8.1' y='9.8' width='7.8' height='2.7' rx='1.35'/%3E%3Crect x='8.1' y='13.2' width='7.8' height='2.7' rx='1.35'/%3E%3Crect x='8.4' y='16.6' width='7.2' height='2.6' rx='1.3'/%3E%3Crect x='9' y='20' width='6' height='2.4' rx='1.2'/%3E%3C/g%3E%3C/svg%3E" />
-<script src="./support.js"></script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%2302030a'/%3E%3Cg fill='%236fe0ff'%3E%3Crect x='9' y='3' width='6' height='2.4' rx='1.2'/%3E%3Crect x='8.4' y='6.4' width='7.2' height='2.6' rx='1.3'/%3E%3Crect x='8.1' y='9.8' width='7.8' height='2.7' rx='1.35'/%3E%3Crect x='8.1' y='13.2' width='7.8' height='2.7' rx='1.35'/%3E%3Crect x='9' y='16.8' width='6' height='2.5' rx='1.25' fill='%23ffb020'/%3E%3Crect x='9' y='20' width='6' height='2.4' rx='1.2' fill='%23ffb020'/%3E%3C/g%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg0:#02030a; --bg1:#061b3a; --bg2:#08284f;
+    --ink:#eaf2ff; --mut:#9fc0e8; --mut2:#6f93bd; --line:rgba(120,180,255,.16);
+    --cyan:#5fd0ff; --blue:#38bdf8; --indigo:#818cf8; --gold:#ffb020;
+    --green:#34d399; --amber:#fbbf24; --orange:#fb923c; --red:#f87171;
+    --card:rgba(8,20,40,.62);
+  }
+  html,body{height:100%}
+  body{
+    font-family:'Sora',system-ui,sans-serif; color:var(--ink);
+    background:radial-gradient(125% 80% at 50% 4%, var(--bg2) 0%, var(--bg1) 34%, #020c1e 64%, var(--bg0) 100%);
+    overflow:hidden;
+  }
+  /* phone frame for desktop preview; full-bleed on real phones */
+  #app{position:relative;width:100%;max-width:430px;height:100dvh;margin:0 auto;overflow:hidden;display:flex;flex-direction:column}
+  ::-webkit-scrollbar{width:0;height:0}
+
+  /* ── HUD ── */
+  .hud{flex:none;padding:16px 20px 10px;display:flex;align-items:center;gap:10px}
+  .hud .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;letter-spacing:.2px}
+  .hud .logo svg{filter:drop-shadow(0 0 8px rgba(95,208,255,.5))}
+  .hud .cert{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:10px;color:var(--cyan);background:rgba(56,189,248,.1);border:1px solid rgba(95,208,255,.28);padding:4px 9px;border-radius:99px;font-weight:600}
+  .prog{flex:none;height:3px;margin:0 20px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+  .prog i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--indigo));transition:width .5s cubic-bezier(.4,0,.2,1)}
+  .steplbl{flex:none;padding:8px 20px 0;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mut2);display:flex;justify-content:space-between}
+
+  /* ── scroll body ── */
+  .scroll{flex:1;overflow-y:auto;padding:6px 20px 150px;-webkit-overflow-scrolling:touch}
+  .eyebrow{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);font-weight:600;margin-top:8px}
+  h1.q{font-size:24px;font-weight:600;line-height:1.18;margin-top:6px;letter-spacing:-.2px}
+  p.sub{font-size:13.5px;color:var(--mut);line-height:1.5;margin-top:8px}
+  .lumbar{color:var(--gold);font-weight:600}
+
+  /* ── footer CTA ── */
+  .foot{position:absolute;left:0;right:0;bottom:0;padding:14px 20px calc(18px + env(safe-area-inset-bottom));
+    background:linear-gradient(0deg, var(--bg0) 55%, transparent);}
+  .cta{width:100%;border:0;border-radius:16px;padding:16px;font-family:inherit;font-size:15.5px;font-weight:700;color:#02121f;cursor:pointer;
+    background:linear-gradient(120deg,var(--cyan),var(--indigo));display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s,filter .2s}
+  .cta:active{transform:scale(.985)} .cta:disabled{opacity:.4}
+  .cta.sec{background:transparent;color:var(--mut);border:1px solid var(--line);margin-top:9px}
+  .back{position:absolute;top:16px;right:20px;background:0;border:0;color:var(--mut2);font-size:12px;cursor:pointer;z-index:5}
+
+  /* ── video card / player ── */
+  .vcard{margin-top:16px;display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:11px 13px;cursor:pointer;transition:border-color .2s}
+  .vcard:active{border-color:var(--cyan)}
+  .vcard .thumb{position:relative;width:50px;height:64px;flex:none;border-radius:10px;overflow:hidden;background:radial-gradient(120% 80% at 50% 0,#0d3a6e,#04132b)}
+  .vcard .thumb .pl{position:absolute;inset:0;display:grid;place-items:center;font-size:15px;color:#fff}
+  .vcard .meta b{display:block;font-size:13px;font-weight:600}
+  .vcard .meta span{font-size:11px;color:var(--mut2)}
+  .vcard .yt{margin-left:auto;font-size:9px;letter-spacing:1px;color:var(--mut2);text-transform:uppercase}
+
+  .pmask{position:fixed;inset:0;z-index:40;background:rgba(2,8,20,.82);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:18px}
+  .pmask.show{display:flex}
+  .pwrap{width:100%;max-width:300px}
+  .pscreen{position:relative;width:100%;aspect-ratio:9/16;border-radius:20px;overflow:hidden;background:radial-gradient(120% 80% at 50% 6%,#0d3a6e,#04132b 72%);border:1px solid var(--line)}
+  .pscreen iframe{width:100%;height:100%;border:0;display:block}
+  .pscreen .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px 22px}
+  .pscreen .ph .spineimg{width:54px;opacity:.8;margin-bottom:14px;filter:drop-shadow(0 0 18px rgba(95,208,255,.5))}
+  .pscreen .ph .pt{font-size:10px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase}
+  .pscreen .ph h3{font-size:17px;font-weight:600;margin:6px 0 10px}
+  .pscreen .ph p{font-size:12.5px;color:#c2d6ef;line-height:1.55}
+  .pscreen .playbtn{position:absolute;inset:0;display:grid;place-items:center;background:rgba(3,12,28,.35);cursor:pointer}
+  .pscreen .playbtn .b{width:62px;height:62px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:23px;color:#06224a;box-shadow:0 8px 30px rgba(95,208,255,.5)}
+  .pbar{height:3px;border-radius:99px;background:rgba(255,255,255,.14);margin:12px 2px 0;overflow:hidden}.pbar i{display:block;height:100%;width:0;background:var(--cyan)}
+  .pclose{margin-top:12px}
+
+  /* ── inputs ── */
+  .field{margin-top:14px}
+  .field label{font-size:12px;color:var(--mut);letter-spacing:.3px}
+  .field input,.field select{width:100%;margin-top:6px;background:rgba(10,26,50,.6);border:1px solid var(--line);border-radius:13px;padding:13px 14px;color:#fff;font-family:inherit;font-size:15px;outline:none}
+  .field input:focus,.field select:focus{border-color:var(--cyan)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .chips{display:grid;gap:9px;margin-top:14px}
+  .chips.two{grid-template-columns:1fr 1fr}
+  .chip{border:1px solid var(--line);background:rgba(12,28,54,.6);color:#cfe0f5;border-radius:13px;padding:13px 14px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;text-align:left;transition:all .16s}
+  .chip b{display:block;font-size:11.5px;color:var(--mut2);font-weight:500;margin-top:3px}
+  .chip.on{border-color:var(--cyan);background:linear-gradient(135deg,rgba(56,189,248,.2),rgba(56,189,248,.04));color:#fff}
+  .chip.on b{color:var(--cyan)}
+
+  /* VAS faces */
+  .faces{display:flex;justify-content:space-between;gap:6px;margin-top:18px}
+  .face{flex:1;border:1px solid var(--line);background:rgba(12,28,54,.5);border-radius:14px;padding:10px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .15s}
+  .face svg{width:30px;height:30px}
+  .face span{font-size:12px;font-weight:600;color:var(--mut)}
+  .face.on{transform:translateY(-3px)}
+  .vaslbl{text-align:center;margin-top:14px;font-size:14px;font-weight:600}
+
+  /* ODI grid */
+  .odi{margin-top:16px;display:grid;gap:8px}
+  .odirow{display:grid;grid-template-columns:1.1fr 2fr;align-items:center;gap:10px}
+  .odirow .n{font-size:13.5px;color:#dbe8fa}
+  .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+  .seg button{border:1px solid var(--line);background:rgba(12,28,54,.55);color:var(--mut);border-radius:10px;padding:9px 2px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:all .14s}
+  .seg button.on{color:#02121f}
+  .seg button.g.on{background:var(--green);border-color:var(--green)}
+  .seg button.a.on{background:var(--amber);border-color:var(--amber)}
+  .seg button.r.on{background:var(--red);border-color:var(--red);color:#fff}
+  .odisum{margin-top:12px;text-align:center;font-size:12.5px;color:var(--mut)}
+
+  /* red flags */
+  .flags{margin-top:14px;display:grid;gap:7px}
+  .flag{display:flex;align-items:center;gap:11px;border:1px solid var(--line);background:rgba(12,28,54,.5);border-radius:12px;padding:11px 13px;cursor:pointer;font-size:13px;transition:all .15s}
+  .flag .bx{width:20px;height:20px;flex:none;border-radius:6px;border:1.5px solid var(--mut2);display:grid;place-items:center;font-size:12px;color:#02121f}
+  .flag.on{border-color:var(--red);background:rgba(248,113,113,.12)} .flag.on .bx{background:var(--red);border-color:var(--red)}
+  .warn{margin-top:12px;display:flex;gap:9px;align-items:flex-start;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.35);border-radius:13px;padding:12px 13px;font-size:12px;color:#ffd2d2;line-height:1.5}
+
+  /* readout tag */
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:4px 11px;border-radius:99px;margin-top:12px}
+
+  /* device cards */
+  .dev{display:flex;align-items:center;gap:13px;border:1px solid var(--line);background:rgba(12,28,54,.55);border-radius:14px;padding:14px;cursor:pointer;margin-top:10px;transition:all .15s}
+  .dev:active{transform:scale(.99)} .dev .di{font-size:22px;width:30px;text-align:center}
+  .dev b{font-size:14px} .dev span{font-size:11.5px;color:var(--mut2);display:block;margin-top:1px}
+  .dev .arr{margin-left:auto;color:var(--mut2)}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .synced{display:flex;align-items:center;gap:6px;color:var(--green);font-size:12.5px;font-weight:600;margin:14px 0 4px}
+  .srow{display:flex;justify-content:space-between;font-size:12.5px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+  .srow .k{color:var(--mut)} .srow .v{color:#fff;font-weight:600}
+
+  /* habit sliders */
+  .hsl{margin-top:16px}
+  .hsl .top{display:flex;justify-content:space-between;align-items:baseline}
+  .hsl .top b{font-size:22px;font-weight:700} .hsl .top span{font-size:12px;color:var(--mut)}
+  input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:99px;outline:none;margin-top:10px;background:linear-gradient(90deg,var(--cyan) var(--p,0%),rgba(255,255,255,.1) var(--p,0%))}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(95,208,255,.7);cursor:pointer}
+
+  /* hero spine */
+  .hero{position:relative;display:flex;justify-content:center;margin:6px 0 2px}
+  .hero img{height:300px;width:auto;filter:drop-shadow(0 10px 40px rgba(0,40,90,.6))}
+  .hero .lumglow{position:absolute;left:50%;top:54%;width:140px;height:120px;transform:translate(-50%,-50%);border-radius:50%;
+    background:radial-gradient(circle,var(--gold),transparent 62%);opacity:.55;filter:blur(6px);mix-blend-mode:screen;transition:background .5s,opacity .5s}
+
+  /* results */
+  .ring{display:grid;place-items:center;position:relative;margin:8px 0}
+  .ring .num{position:absolute;text-align:center}
+  .ring .num b{font-size:46px;font-weight:800;letter-spacing:-1px}
+  .ring .num span{display:block;font-size:9.5px;letter-spacing:2px;color:var(--mut);text-transform:uppercase;margin-top:-2px}
+  .ring .num small{display:block;font-size:11px;color:var(--mut2)}
+  .mgmt{margin-top:14px;border-radius:14px;padding:13px 15px;font-size:13px;line-height:1.5}
+  .bd{margin-top:14px;display:grid;gap:6px}
+  .bd .b{display:flex;align-items:center;font-size:12.5px;gap:10px}
+  .bd .b .n{flex:1;color:var(--mut)} .bd .b .v{color:#fff;font-weight:600}
+  .trust{margin-top:18px;text-align:center;font-size:11.5px;color:var(--mut2);line-height:1.6;border-top:1px solid var(--line);padding-top:14px}
+  .trust a{color:var(--cyan);text-decoration:none}
+  .trust .by{color:#fff;font-weight:600}
+  .disc{margin-top:10px;font-size:10.5px;color:var(--mut2);text-align:center;line-height:1.5}
+</style>
 </head>
 <body>
-<x-dc>
-<helmet>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  body{margin:0;background:#000;}
-  ::-webkit-scrollbar{display:none;}
-  @keyframes floaty{0%{transform:translateY(0);opacity:0;}10%{opacity:.7;}90%{opacity:.7;}100%{transform:translateY(-70px);opacity:0;}}
-  @keyframes pulseGlow{0%,100%{opacity:.45;}50%{opacity:.85;}}
-  @keyframes scanSweep{0%{top:14%;opacity:0;}8%{opacity:1;}92%{opacity:1;}100%{top:74%;opacity:0;}}
-  @keyframes scanFill{0%{width:0;}100%{width:100%;}}
-  @keyframes ringPulse{0%{transform:scale(.6);opacity:.9;}100%{transform:scale(2.6);opacity:0;}}
-  @keyframes spin{to{transform:rotate(360deg);}}
-  @keyframes poseIn{from{opacity:0;}to{opacity:1;}}
-</style>
-</helmet>
-<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(140% 100% at 50% 0%,#0a1426 0%,#000 70%);padding:0;font-family:'Sora',system-ui,sans-serif;">
-  <div style="position:relative;width:390px;height:844px;border-radius:46px;overflow:hidden;background:radial-gradient(125% 85% at 50% 16%,#08284f 0%,#051838 34%,#020c1e 62%,#00040d 100%);box-shadow:0 50px 130px rgba(0,50,110,.45),inset 0 0 0 1px rgba(120,180,255,.09);color:#eaf2ff;">
-
-    <!-- grid -->
-    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(95,170,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(95,170,255,.07) 1px,transparent 1px);background-size:30px 30px;-webkit-mask-image:radial-gradient(75% 60% at 50% 42%,#000 0%,transparent 85%);mask-image:radial-gradient(75% 60% at 50% 42%,#000 0%,transparent 85%);"></div>
-    <!-- ambient glow -->
-    <div style="position:absolute;left:50%;top:36%;width:340px;height:340px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(40,120,220,.32) 0%,rgba(20,70,150,.12) 45%,transparent 70%);filter:blur(8px);"></div>
-    <!-- particles -->
-    <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">{{ particles }}</div>
-
-    <!-- HERO -->
-    <div onPointerDown="{{ stageDown }}" style="position:absolute;left:0;right:0;top:96px;bottom:188px;perspective:1300px;cursor:grab;touch-action:none;">
-      <div ref="{{ innerRef }}" style="width:100%;height:100%;transform-style:preserve-3d;will-change:transform;">{{ hero }}</div>
-      <!-- pain region taps live on the spine itself (rendered in {{ hero }}) -->
-      <!-- scan line -->
-      <sc-if value="{{ scanning }}" hint-placeholder-val="{{ true }}">
-        <div style="position:absolute;left:8%;right:8%;height:2px;background:linear-gradient(90deg,transparent,#6fe0ff,transparent);box-shadow:0 0 18px 3px rgba(110,224,255,.7);animation:scanSweep 2.5s linear forwards;"></div>
-      </sc-if>
-      <!-- wearable sync ring -->
-      <sc-if value="{{ syncing }}" hint-placeholder-val="{{ true }}">
-        <div style="position:absolute;left:50%;top:46%;width:120px;height:120px;margin:-60px 0 0 -60px;border:2px solid rgba(110,224,255,.8);border-radius:50%;animation:ringPulse 1.4s ease-out infinite;"></div>
-      </sc-if>
+<div id="app">
+  <div class="hud">
+    <div class="logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden><g fill="#6fe0ff"><rect x="9" y="3" width="6" height="2.4" rx="1.2"/><rect x="8.4" y="6.4" width="7.2" height="2.6" rx="1.3"/><rect x="8.1" y="9.8" width="7.8" height="2.7" rx="1.35"/><rect x="8.1" y="13.2" width="7.8" height="2.7" rx="1.35"/></g><g fill="#ffb020"><rect x="9" y="16.8" width="6" height="2.5" rx="1.25"/><rect x="9" y="20" width="6" height="2.4" rx="1.2"/></g></svg>
+      BackSignal
     </div>
-
-    <!-- TOP HUD -->
-    <div style="position:absolute;left:0;right:0;top:0;padding:20px 24px 0;">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <button onClick="{{ back }}" style="width:30px;height:30px;flex:none;border-radius:50%;border:1px solid rgba(120,180,255,.22);background:rgba(10,28,56,.5);color:#bcd4f0;font-size:15px;cursor:pointer;opacity:{{ backOpacity }};">‹</button>
-        <div style="flex:1;">
-          <div style="display:flex;justify-content:space-between;font-size:10px;letter-spacing:2px;color:#7e96b8;text-transform:uppercase;margin-bottom:6px;">
-            <span>Step {{ stepNum }} / 10</span><span>{{ stepLabel }}</span>
-          </div>
-          <div style="height:3px;border-radius:3px;background:rgba(120,170,235,.14);overflow:hidden;">
-            <div style="height:100%;border-radius:3px;background:linear-gradient(90deg,#2a86c8,#6fe0ff);box-shadow:0 0 10px rgba(110,224,255,.6);width:{{ progressPct }}%;transition:width .5s cubic-bezier(.4,0,.2,1);"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- BOTTOM PANEL -->
-    <div style="position:absolute;left:0;right:0;bottom:0;padding:0 18px 26px;background:linear-gradient(180deg,rgba(2,10,26,0) 0%,rgba(2,10,26,.55) 26%,rgba(2,8,20,.92) 58%);">
-      <div style="background:rgba(11,26,52,.55);border:1px solid rgba(120,180,255,.15);border-radius:24px;padding:20px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 20px 50px rgba(0,20,50,.5);">
-
-        <!-- MEET -->
-        <sc-if value="{{ isMeet }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:10px;letter-spacing:3px;color:#6fb8e8;text-transform:uppercase;margin-bottom:10px;">Spine Lab · Assessment</div>
-          <div style="font-size:27px;font-weight:600;line-height:1.1;margin-bottom:8px;">Meet your spine.</div>
-          <div style="font-size:13.5px;line-height:1.5;color:#9fb4d2;">A short, guided lab scan that maps how your daily habits shape spinal health — then gives you one number to track.</div>
-        </sc-if>
-
-        <!-- PAIN -->
-        <sc-if value="{{ isPain }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:10px;letter-spacing:3px;color:#6fb8e8;text-transform:uppercase;margin-bottom:8px;">Pain map</div>
-          <div style="font-size:21px;font-weight:600;margin-bottom:6px;">Where does it hurt?</div>
-          <div style="font-size:13px;line-height:1.5;color:#9fb4d2;margin-bottom:12px;">Tap the regions on the model where you feel pain or tension.</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;min-height:26px;">
-            <sc-for list="{{ painChips }}" as="c" hint-placeholder-count="2">
-              <span style="font-size:11px;letter-spacing:.5px;padding:6px 11px;border-radius:20px;background:rgba(255,90,80,.14);border:1px solid rgba(255,120,100,.45);color:#ffb3a8;">{{ c }}</span>
-            </sc-for>
-            <sc-if value="{{ noPain }}" hint-placeholder-val="{{ true }}">
-              <span style="font-size:12px;color:#6f86a6;">No regions flagged — tap to add, or continue.</span>
-            </sc-if>
-          </div>
-        </sc-if>
-
-        <!-- SLEEP -->
-        <sc-if value="{{ isSleep }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:10px;letter-spacing:3px;color:#6fb8e8;text-transform:uppercase;margin-bottom:8px;">Sleep</div>
-          <div style="font-size:21px;font-weight:600;margin-bottom:14px;">How do you sleep?</div>
-          <div style="display:flex;gap:8px;margin-bottom:18px;">
-            <button onClick="{{ sleepSide }}" style="{{ sstyle.side }}">Side</button>
-            <button onClick="{{ sleepBack }}" style="{{ sstyle.back }}">Back</button>
-            <button onClick="{{ sleepStomach }}" style="{{ sstyle.stomach }}">Stomach</button>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;letter-spacing:1px;color:#8ba3c2;margin-bottom:8px;text-transform:uppercase;"><span>Hours / night</span><span style="color:#dff2ff;font-variant-numeric:tabular-nums;font-size:13px;">{{ sleepHrsLbl }} h</span></div>
-          <div onPointerDown="{{ slideSleep }}" style="padding:9px 0;cursor:pointer;touch-action:none;">
-            <div style="position:relative;height:4px;border-radius:4px;background:rgba(120,170,235,.16);">
-              <div style="position:absolute;left:0;top:0;height:100%;border-radius:4px;background:linear-gradient(90deg,#2a86c8,#6fe0ff);width:{{ sleepPct }}%;"></div>
-              <div style="position:absolute;top:50%;left:{{ sleepPct }}%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#dff2ff;box-shadow:0 0 12px rgba(110,224,255,.8);"></div>
-            </div>
-          </div>
-        </sc-if>
-
-        <!-- SITTING -->
-        <sc-if value="{{ isSit }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:10px;letter-spacing:3px;color:#6fb8e8;text-transform:uppercase;margin-bottom:8px;">Desk load</div>
-          <div style="font-size:21px;font-weight:600;margin-bottom:4px;">Sitting hours per day</div>
-          <div style="font-size:12.5px;line-height:1.5;color:#9fb4d2;margin-bottom:16px;">Prolonged sitting flattens the lumbar curve and loads the lower discs.</div>
-          <div style="display:flex;justify-content:flex-end;font-size:28px;font-weight:600;color:#dff2ff;font-variant-numeric:tabular-nums;margin-bottom:4px;">{{ sitHrs }}<span style="font-size:14px;color:#8ba3c2;margin:10px 0 0 4px;">hrs</span></div>
-          <div onPointerDown="{{ slideSit }}" style="padding:9px 0;cursor:pointer;touch-action:none;">
-            <div style="position:relative;height:4px;border-radius:4px;background:rgba(120,170,235,.16);">
-              <div style="position:absolute;left:0;top:0;height:100%;border-radius:4px;background:linear-gradient(90deg,#2a86c8,#ffb020);width:{{ sitPct }}%;"></div>
-              <div style="position:absolute;top:50%;left:{{ sitPct }}%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#dff2ff;box-shadow:0 0 12px rgba(255,176,32,.7);"></div>
-            </div>
-          </div>
-        </sc-if>
-
-        <!-- MOVEMENT -->
-        <sc-if value="{{ isMove }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:10px;letter-spacing:3px;color:#6fb8e8;text-transform:uppercase;margin-bottom:8px;">Movement</div>
-          <div style="font-size:21px;font-weight:600;margin-bottom:4px;">Daily activity</div>
-          <div style="font-size:12.5px;line-height:1.5;color:#9fb4d2;margin-bottom:16px;">Walking nourishes the discs. Aim for ~8,000 steps a day.</div>
-          <div style="display:flex;justify-content:flex-end;font-size:28px;font-weight:600;color:#dff2ff;font-variant-numeric:tabular-nums;margin-bottom:4px;">{{ stepsLbl }}<span style="font-size:14px;color:#8ba3c2;margin:10px 0 0 5px;">steps</span></div>
-          <div onPointerDown="{{ slideSteps }}" style="padding:9px 0;cursor:pointer;touch-action:none;">
-            <div style="position:relative;height:4px;border-radius:4px;background:rgba(120,170,235,.16);">
-              <div style="position:absolute;left:0;top:0;height:100%;border-radius:4px;background:linear-gradient(90deg,#2a86c8,#36e0a1);width:{{ stepPct }}%;"></div>
-              <div style="position:absolute;top:50%;left:{{ stepPct }}%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#dff2ff;box-shadow:0 0 12px rgba(54,224,161,.7);"></div>
-            </div>
-          </div>
-        </sc-if>
-
-        <!-- LIFTING -->
-        <sc-if value="{{ isLift }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:10px;letter-spacing:3px;color:#6fb8e8;text-transform:uppercase;margin-bottom:8px;">Lifting</div>
-          <div style="font-size:21px;font-weight:600;margin-bottom:4px;">Heaviest regular lift</div>
-          <div style="font-size:12.5px;line-height:1.5;color:#9fb4d2;margin-bottom:16px;">Load concentrates at <span style="color:#ffb020;font-weight:600;">L4–L5</span> when you bend and lift.</div>
-          <div style="display:flex;justify-content:flex-end;font-size:28px;font-weight:600;color:#dff2ff;font-variant-numeric:tabular-nums;margin-bottom:4px;">{{ lift }}<span style="font-size:14px;color:#8ba3c2;margin:10px 0 0 4px;">kg</span></div>
-          <div onPointerDown="{{ slideLift }}" style="padding:9px 0;cursor:pointer;touch-action:none;">
-            <div style="position:relative;height:4px;border-radius:4px;background:rgba(120,170,235,.16);">
-              <div style="position:absolute;left:0;top:0;height:100%;border-radius:4px;background:linear-gradient(90deg,#2a86c8,#ff5a5a);width:{{ liftPct }}%;"></div>
-              <div style="position:absolute;top:50%;left:{{ liftPct }}%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#dff2ff;box-shadow:0 0 12px rgba(255,90,90,.7);"></div>
-            </div>
-          </div>
-        </sc-if>
-
-        <!-- WEARABLE -->
-        <sc-if value="{{ isWear }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:10px;letter-spacing:3px;color:#6fb8e8;text-transform:uppercase;margin-bottom:8px;">Wearable</div>
-          <div style="font-size:21px;font-weight:600;margin-bottom:6px;">Sync your device</div>
-          <sc-if value="{{ notSynced }}" hint-placeholder-val="{{ true }}">
-            <div style="font-size:12.5px;line-height:1.5;color:#9fb4d2;margin-bottom:14px;">Pull posture &amp; activity signals straight into the model.</div>
-            <button onClick="{{ sync }}" style="width:100%;padding:14px;border-radius:14px;border:1px solid rgba(120,205,255,.5);background:rgba(60,150,230,.16);color:#dff2ff;font-family:inherit;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;">Sync device</button>
-          </sc-if>
-          <sc-if value="{{ synced }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;gap:10px;margin-top:6px;">
-              <div style="flex:1;background:rgba(8,22,44,.5);border:1px solid rgba(120,180,255,.14);border-radius:14px;padding:12px;text-align:center;"><div style="font-size:22px;font-weight:600;color:#dff2ff;font-variant-numeric:tabular-nums;">62</div><div style="font-size:9px;letter-spacing:1px;color:#7e96b8;text-transform:uppercase;margin-top:3px;">BPM</div></div>
-              <div style="flex:1;background:rgba(8,22,44,.5);border:1px solid rgba(120,180,255,.14);border-radius:14px;padding:12px;text-align:center;"><div style="font-size:22px;font-weight:600;color:#36e0a1;">Good</div><div style="font-size:9px;letter-spacing:1px;color:#7e96b8;text-transform:uppercase;margin-top:3px;">Posture</div></div>
-              <div style="flex:1;background:rgba(8,22,44,.5);border:1px solid rgba(120,180,255,.14);border-radius:14px;padding:12px;text-align:center;"><div style="font-size:22px;font-weight:600;color:#dff2ff;font-variant-numeric:tabular-nums;">14</div><div style="font-size:9px;letter-spacing:1px;color:#7e96b8;text-transform:uppercase;margin-top:3px;">Active hrs</div></div>
-            </div>
-          </sc-if>
-        </sc-if>
-
-        <!-- SCAN -->
-        <sc-if value="{{ isScan }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:10px;letter-spacing:3px;color:#6fb8e8;text-transform:uppercase;margin-bottom:8px;">Scan</div>
-          <div style="font-size:21px;font-weight:600;margin-bottom:6px;">Spinal scan</div>
-          <sc-if value="{{ scanIdle }}" hint-placeholder-val="{{ true }}">
-            <div style="font-size:12.5px;line-height:1.5;color:#9fb4d2;margin-bottom:14px;">Sweep the model to reveal each segment and compile your score.</div>
-            <button onClick="{{ runScan }}" style="width:100%;padding:14px;border-radius:14px;border:1px solid rgba(120,205,255,.5);background:rgba(60,150,230,.16);color:#dff2ff;font-family:inherit;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;">Run scan</button>
-          </sc-if>
-          <sc-if value="{{ scanning }}" hint-placeholder-val="{{ true }}">
-            <div style="font-size:12px;letter-spacing:1px;color:#8ba3c2;text-transform:uppercase;margin-bottom:10px;">Scanning segments…</div>
-            <div style="height:4px;border-radius:4px;background:rgba(120,170,235,.16);overflow:hidden;"><div style="height:100%;background:linear-gradient(90deg,#2a86c8,#6fe0ff);animation:scanFill 2.5s linear forwards;"></div></div>
-          </sc-if>
-          <sc-if value="{{ scanDone }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;align-items:center;gap:8px;color:#36e0a1;font-size:14px;font-weight:600;"><span style="width:22px;height:22px;border-radius:50%;background:rgba(54,224,161,.16);border:1px solid #36e0a1;display:flex;align-items:center;justify-content:center;font-size:12px;">✓</span>Scan complete — 24 segments mapped</div>
-          </sc-if>
-        </sc-if>
-
-        <!-- SCORE -->
-        <sc-if value="{{ isScore }}" hint-placeholder-val="{{ true }}">
-          <div style="display:flex;align-items:center;gap:18px;">
-            <div style="position:relative;width:124px;height:124px;flex:none;">
-              <svg width="124" height="124" viewBox="0 0 124 124">
-                <circle cx="62" cy="62" r="54" fill="none" stroke="rgba(120,170,235,.14)" stroke-width="9"></circle>
-                <circle ref="{{ gaugeRef }}" cx="62" cy="62" r="54" fill="none" stroke="#36e0a1" stroke-width="9" stroke-linecap="round" stroke-dasharray="339.3" stroke-dashoffset="339.3" transform="rotate(-90 62 62)"></circle>
-              </svg>
-              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                <div ref="{{ scoreRef }}" style="font-size:34px;font-weight:600;color:#eaf2ff;font-variant-numeric:tabular-nums;line-height:1;">0</div>
-                <div style="font-size:8px;letter-spacing:2px;color:#7e96b8;text-transform:uppercase;margin-top:3px;">Spine score</div>
-              </div>
-            </div>
-            <div style="flex:1;display:flex;flex-direction:column;gap:9px;">
-              <sc-for list="{{ regionBars }}" as="r" hint-placeholder-count="3">
-                <div>
-                  <div style="display:flex;justify-content:space-between;font-size:10px;letter-spacing:1px;color:#9fb4d2;text-transform:uppercase;margin-bottom:4px;"><span>{{ r.name }}</span><span style="color:#dff2ff;">{{ r.val }}</span></div>
-                  <div style="height:5px;border-radius:5px;background:rgba(120,170,235,.14);overflow:hidden;"><div style="height:100%;border-radius:5px;background:{{ r.color }};width:{{ r.pct }}%;"></div></div>
-                </div>
-              </sc-for>
-            </div>
-          </div>
-        </sc-if>
-
-        <!-- DASHBOARD -->
-        <sc-if value="{{ isDash }}" hint-placeholder-val="{{ true }}">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
-            <div><div style="font-size:10px;letter-spacing:3px;color:#6fb8e8;text-transform:uppercase;margin-bottom:6px;">Your report</div><div style="font-size:20px;font-weight:600;">Spine health</div></div>
-            <div style="text-align:right;"><div style="font-size:32px;font-weight:600;color:{{ scoreColor }};line-height:1;font-variant-numeric:tabular-nums;">{{ scoreVal }}</div><div style="font-size:9px;letter-spacing:1px;color:#7e96b8;text-transform:uppercase;">{{ scoreBand }}</div></div>
-          </div>
-          <div style="font-size:9px;letter-spacing:2px;color:#7e96b8;text-transform:uppercase;margin-bottom:8px;">Top risks</div>
-          <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;">
-            <sc-for list="{{ risks }}" as="r" hint-placeholder-count="3">
-              <div style="display:flex;align-items:center;gap:10px;background:rgba(8,22,44,.5);border:1px solid rgba(120,180,255,.12);border-radius:12px;padding:10px 12px;">
-                <span style="width:7px;height:7px;border-radius:50%;background:{{ r.color }};flex:none;box-shadow:0 0 8px {{ r.color }};"></span>
-                <div style="flex:1;"><div style="font-size:13px;font-weight:500;color:#e6f0ff;">{{ r.t }}</div><div style="font-size:11px;color:#8ba3c2;">{{ r.d }}</div></div>
-              </div>
-            </sc-for>
-          </div>
-          <div style="font-size:9px;letter-spacing:2px;color:#7e96b8;text-transform:uppercase;margin-bottom:8px;">Recommended</div>
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <sc-for list="{{ recs }}" as="x" hint-placeholder-count="2">
-              <div style="display:flex;gap:9px;font-size:12.5px;color:#bcd2ee;align-items:flex-start;"><span style="color:#6fe0ff;">→</span><span>{{ x }}</span></div>
-            </sc-for>
-          </div>
-        </sc-if>
-
-        <!-- CTA -->
-        <sc-if value="{{ showCta }}" hint-placeholder-val="{{ true }}">
-          <button onClick="{{ cta }}" style="width:100%;margin-top:18px;padding:15px;border-radius:15px;border:1px solid rgba(120,205,255,.55);background:linear-gradient(90deg,rgba(42,134,200,.32),rgba(110,224,255,.22));color:#f2faff;font-family:inherit;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 24px rgba(30,110,190,.3);">{{ ctaLabel }}</button>
-        </sc-if>
-
-      </div>
-    </div>
-
-    <!-- vignette -->
-    <div style="position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 120px 30px rgba(0,4,13,.6);border-radius:46px;"></div>
+    <div class="cert">✚ Doctor-verified</div>
   </div>
+  <div class="prog"><i id="prog"></i></div>
+  <div class="steplbl"><span id="lblL"></span><span id="lblR"></span></div>
+  <div class="scroll" id="scroll"></div>
+  <div class="foot" id="foot"></div>
 </div>
-</x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
-class Component extends DCLogic {
-  state = {
-    i: 0,
-    pain: { neck:false, upper:false, mid:false, lower:false },
-    sleepPos:'side', sleepHrs:7,
-    sitHrs:8, steps:6000, lift:15,
-    synced:false, syncing:false,
-    scanPhase:'idle', // idle | scanning | done
-    scanShown:false,
-  };
-  screens = ['meet','pain','sleep','sitting','movement','lifting','wearable','scan','score','dashboard'];
-  labels  = ['Meet','Pain map','Sleep','Sitting','Movement','Lifting','Wearable','Scan','Score','Report'];
 
-  innerRef = React.createRef();
-  scoreRef = React.createRef();
-  gaugeRef = React.createRef();
-
-  // ---------- lifecycle ----------
-  componentDidMount(){
-    this.dragRot = -6; this.t0 = performance.now();
-    const loop = (t)=>{
-      this._raf = requestAnimationFrame(loop);
-      const el = this.innerRef.current; if(!el) return;
-      const a = Math.sin((t-this.t0)/3800)*4;
-      const fy = Math.sin((t-this.t0)/2600)*6;
-      el.style.transform = `translateY(${fy}px) rotateY(${a + this.dragRot}deg)`;
-    };
-    this._raf = requestAnimationFrame(loop);
-  }
-  componentWillUnmount(){ if(this._raf) cancelAnimationFrame(this._raf); }
-  // ---------- nav ----------
-  goScreen(n){
-    n=Math.max(0,Math.min(9,n)); const s=this.screens[n];
-    const patch={i:n};
-    if(s==='scan' && this.state.scanPhase!=='done'){ patch.scanPhase='idle'; patch.scanShown=false; }
-    this.setState(patch);
-    if(s==='score') setTimeout(()=>this.animScore(), 160);
-  }
-  cta(){ const n=this.screens[this.state.i]; if(n==='dashboard'){ this.reset(); } else { this.goScreen(this.state.i+1); } }
-  back(){ if(this.state.i>0) this.goScreen(this.state.i-1); }
-  reset(){ this.setState({ i:0, pain:{neck:false,upper:false,mid:false,lower:false}, sleepPos:'side', sleepHrs:7, sitHrs:8, steps:6000, lift:15, synced:false, syncing:false, scanPhase:'idle', scanShown:false }); this.animatePose(this.poseParams('meet')); }
-
-  // ---------- interactions ----------
-  togglePain(r){ const p={...this.state.pain}; p[r]=!p[r]; this.setState({pain:p}); }
-  setSleep(v){ this.setState({sleepPos:v}); }
-  sync(){ this.setState({syncing:true}); setTimeout(()=>this.setState({syncing:false, synced:true}), 1600); }
-  runScan(){ this.setState({scanPhase:'scanning', scanShown:false}); setTimeout(()=>this.setState({scanShown:true}), 120); setTimeout(()=>this.setState({scanPhase:'done'}), 2550); }
-
-  slider(e, key, min, max, step){
-    const track = e.currentTarget.querySelector('div');
-    const rect = track.getBoundingClientRect();
-    const upd = (cx)=>{ let p=(cx-rect.left)/rect.width; p=Math.max(0,Math.min(1,p)); let v=min+p*(max-min); v=Math.round(v/step)*step; this.setState({[key]:v}); };
-    upd(e.clientX);
-    const mv=(ev)=>upd(ev.clientX);
-    const up=()=>{ document.removeEventListener('pointermove',mv); document.removeEventListener('pointerup',up); };
-    document.addEventListener('pointermove',mv); document.addEventListener('pointerup',up);
-  }
-  stageDown(e){
-    if(e.target.closest('button')) return;
-    const base=this.dragRot||0, x0=e.clientX;
-    const mv=(ev)=>{ this.dragRot=Math.max(-42,Math.min(42, base+(ev.clientX-x0)*0.35)); };
-    const up=()=>{ document.removeEventListener('pointermove',mv); document.removeEventListener('pointerup',up); };
-    document.addEventListener('pointermove',mv); document.addEventListener('pointerup',up);
-  }
-
-  // ---------- scoring ----------
-  computeScore(){
-    const s=this.state; let p=0;
-    p += Object.values(s.pain).filter(Boolean).length*6;
-    if(s.sitHrs>6) p+=(s.sitHrs-6)*3;
-    p += ({side:0,back:5,stomach:11})[s.sleepPos]||0;
-    if(s.sleepHrs<6.5) p+=(6.5-s.sleepHrs)*3;
-    if(s.steps<8000) p+=(8000-s.steps)/8000*16;
-    if(s.lift>20) p+=(s.lift-20)*0.7;
-    return Math.round(Math.max(34,Math.min(98,100-p)));
-  }
-  regionScores(){
-    const s=this.state, cl=(v)=>Math.round(Math.max(22,Math.min(99,v)));
-    let c=96,t=96,l=96;
-    if(s.pain.neck)c-=30; if(s.pain.upper)t-=22; if(s.pain.mid)t-=18; if(s.pain.lower)l-=30;
-    if(s.sitHrs>6){ l-=(s.sitHrs-6)*3.5; t-=(s.sitHrs-6)*1.4; }
-    if(s.lift>20) l-=(s.lift-20)*1.0;
-    if(s.sleepPos==='stomach'){ c-=12; l-=8; } if(s.sleepPos==='back') c-=4;
-    if(s.steps<8000){ const d=(8000-s.steps)/8000; l-=d*12; t-=d*8; }
-    return { c:cl(c), t:cl(t), l:cl(l) };
-  }
-  scColor(v){ return v>72?'#36e0a1':v>50?'#ffb020':'#ff5a5a'; }
-
-  animScore(){
-    const target=this.computeScore(), reg=this.regionScores();
-    const col=this.scColor(Math.round((reg.c+reg.t+reg.l)/3));
-    if(this.gaugeRef.current) this.gaugeRef.current.style.stroke=col;
-    const C=2*Math.PI*54, start=performance.now(), dur=1700;
-    const setVal=(v)=>{ if(this.scoreRef.current) this.scoreRef.current.textContent=Math.round(v); if(this.gaugeRef.current) this.gaugeRef.current.style.strokeDashoffset=C*(1-(target/100)*(v/(target||1))); };
-    const step=(t)=>{ const k=Math.min(1,(t-start)/dur), e=1-Math.pow(1-k,3);
-      setVal(target*e);
-      if(k<1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-    // fallback: show final value even if rAF is throttled
-    if(this._scoreTo) clearTimeout(this._scoreTo);
-    this._scoreTo=setTimeout(()=>setVal(target), dur+150);
-  }
-
-  // ---------- geometry ----------
-  cr(A, dens){
-    const P=(k)=>A[Math.max(0,Math.min(A.length-1,k))], pts=[];
-    for(let s=0;s<A.length-1;s++){
-      const p0=P(s-1),p1=P(s),p2=P(s+1),p3=P(s+2), steps=dens;
-      for(let j=0;j<steps;j++){ const t=j/steps,t2=t*t,t3=t2*t;
-        pts.push({ x:0.5*((2*p1.x)+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
-                   y:0.5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3) }); }
-    }
-    pts.push(A[A.length-1]); return pts;
-  }
-  spineLayout(anchors, N){
-    const poly=this.cr(anchors,26), L=[0];
-    for(let k=1;k<poly.length;k++) L.push(L[k-1]+Math.hypot(poly[k].x-poly[k-1].x, poly[k].y-poly[k-1].y));
-    const total=L[L.length-1], out=[];
-    for(let v=0;v<N;v++){ const d=total*(v/(N-1)); let k=1; while(k<L.length-1 && L[k]<d) k++;
-      const t=(d-L[k-1])/((L[k]-L[k-1])||1);
-      out.push({ x:poly[k-1].x+(poly[k].x-poly[k-1].x)*t, y:poly[k-1].y+(poly[k].y-poly[k-1].y)*t,
-                 a:Math.atan2(poly[k].y-poly[k-1].y, poly[k].x-poly[k-1].x) }); }
-    return out;
-  }
-
-  poses(){
-    const stand=[{x:150,y:100},{x:148,y:152},{x:151,y:232},{x:154,y:318},{x:151,y:406},{x:147,y:496},{x:150,y:556}];
-    const lie=[{x:74,y:340},{x:110,y:342},{x:148,y:346},{x:186,y:352},{x:218,y:357},{x:242,y:360},{x:260,y:362}];
-    const sit=[{x:154,y:120},{x:153,y:158},{x:152,y:202},{x:155,y:244},{x:162,y:280},{x:170,y:304},{x:176,y:318}];
-    const bend=[{x:236,y:302},{x:210,y:289},{x:184,y:281},{x:166,y:285},{x:154,y:294},{x:149,y:303},{x:147,y:310}];
-    const run=[{x:160,y:108},{x:157,y:144},{x:155,y:186},{x:153,y:228},{x:151,y:268},{x:150,y:296},{x:152,y:312}];
-    const S=(sp,body)=>({sp,body,ur:0});
-    return {
-      meet:S(stand,'stand'), pain:S(stand,'stand'), wearable:S(stand,'stand'),
-      scan:S(stand,'stand'), score:S(stand,'stand'), dashboard:S(stand,'stand'),
-      movement:S(run,'run'),
-      sleep:S(lie,'lie'), sitting:S(sit,'sit'), lifting:S(bend,'bend'),
-    };
-  }
-
-  poseParams(name){ const p=this.poses()[name]||this.poses().meet; return {sp:p.sp.map(q=>({...q})), body:p.body, ur:p.ur}; }
-  animatePose(target){
-    if(!this.curPose){ this.curPose=this.poseParams(this.screens[this.state.i]); }
-    const from={sp:this.curPose.sp.map(q=>({...q})), ur:this.curPose.ur};
-    const tgt={sp:target.sp.map(q=>({...q})), ur:target.ur};
-    this.prevBody=this.curPose.body; this.curBody=target.body; this.bodyT=0;
-    const start=performance.now(), dur=820;
-    if(this._poseRaf) cancelAnimationFrame(this._poseRaf);
-    if(this._poseTo) clearTimeout(this._poseTo);
-    const bump=()=>this.setState({_pt:(this._pt=(this._pt||0)+1)});
-    const finish=()=>{ this.curPose={sp:tgt.sp.map(q=>({...q})), ur:tgt.ur, body:this.curBody}; this.bodyT=1; this.prevBody=this.curBody; bump(); };
-    const step=(t)=>{
-      const k=Math.min(1,(t-start)/dur);
-      if(k>=1){ finish(); return; }
-      const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
-      const cp={sp:[],ur:from.ur+(tgt.ur-from.ur)*e,body:this.curBody};
-      for(let i=0;i<from.sp.length;i++) cp.sp.push({x:from.sp[i].x+(tgt.sp[i].x-from.sp[i].x)*e, y:from.sp[i].y+(tgt.sp[i].y-from.sp[i].y)*e});
-      this.curPose=cp; this.bodyT=e; bump();
-      this._poseRaf=requestAnimationFrame(step);
-    };
-    this._poseRaf=requestAnimationFrame(step);
-    // fallback: guarantee correct resting pose even if rAF is throttled (background/hidden tab)
-    this._poseTo=setTimeout(finish, dur+180);
-  }
-
-  // ---------- figure (skeleton → smooth glass body) ----------
-  circ(cx,cy,r){ return `M ${(cx-r).toFixed(1)} ${cy.toFixed(1)} A ${r} ${r} 0 1 0 ${(cx+r).toFixed(1)} ${cy.toFixed(1)} A ${r} ${r} 0 1 0 ${(cx-r).toFixed(1)} ${cy.toFixed(1)} Z `; }
-  cap(ax,ay,bx,by,wa,wb){
-    const dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy)||1, nx=-dy/L,ny=dx/L, ra=wa/2,rb=wb/2;
-    const f=(n)=>n.toFixed(1);
-    return `M ${f(ax+nx*ra)} ${f(ay+ny*ra)} L ${f(bx+nx*rb)} ${f(by+ny*rb)} `
-         + `A ${rb} ${rb} 0 0 1 ${f(bx-nx*rb)} ${f(by-ny*rb)} L ${f(ax-nx*ra)} ${f(ay-ny*ra)} `
-         + `A ${ra} ${ra} 0 0 1 ${f(ax+nx*ra)} ${f(ay+ny*ra)} Z `;
-  }
-  mirror(rp){
-    const A=rp.map(p=>({x:p[0],y:p[1]}));
-    const poly=this.cr(A,16);
-    let d='M '+poly.map(p=>p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' L ');
-    for(let k=poly.length-1;k>=0;k--) d+=' L '+(300-poly[k].x).toFixed(1)+' '+poly[k].y.toFixed(1);
-    return d+' Z';
-  }
-  loop(pts){
-    const A=pts.map(p=>({x:p[0],y:p[1]}));
-    const poly=this.cr(A,14);
-    return 'M '+poly.map(p=>p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' L ')+' Z';
-  }
-  seg(lines){
-    let d='';
-    lines.forEach(pl=>{ const A=pl.map(p=>({x:p[0],y:p[1]})); const poly=this.cr(A,9);
-      d+='M '+poly.map(p=>p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' L ')+' '; });
-    return d;
-  }
-  mir(lines){ return lines.map(pl=>pl.map(p=>[300-p[0],p[1]])); }
-  buildBodyDetail(name){
-    if(name==='stand'){
-      const R=[
-        [[150,108],[184,120],[214,142]],
-        [[204,172],[228,204],[216,246]],
-        [[216,264],[208,330],[200,392]],
-        [[166,424],[168,506]],
-        [[240,292],[226,352],[206,402]]
-      ];
-      const C=[[[150,560],[150,594]]];
-      return {d:this.seg([...R,...this.mir(R),...C]), dots:[[172,524,3.2,3.2],[128,524,3.2,3.2]]};
-    }
-    if(name==='run'){
-      return {d:this.seg([
-        [[170,135],[178,185],[185,250]],[[168,140],[182,150]],
-        [[195,295],[218,318],[232,338]],[[226,360],[230,400]],
-        [[150,320],[128,350]],[[108,365],[92,398]],
-        [[160,300],[152,272]]
-      ]), dots:[]};
-    }
-    if(name==='sit'){
-      return {d:this.seg([
-        [[166,132],[172,180],[173,240]],[[164,150],[176,158]],
-        [[200,294],[235,296],[265,300]],[[262,340],[272,440]],
-        [[178,300],[168,260],[160,210]]
-      ]), dots:[[268,312,7,8]]};
-    }
-    if(name==='lie'){
-      return {d:this.seg([
-        [[120,335],[150,342],[180,348]],[[138,346],[176,353]],
-        [[202,352],[218,356]],[[222,344],[248,340]],
-        [[100,340],[120,333]]
-      ]), dots:[[262,340,7,7]]};
-    }
-    if(name==='bend'){
-      return {d:this.seg([
-        [[160,294],[190,283],[218,290]],
-        [[148,312],[150,360],[154,430]],[[157,450],[162,510]],
-        [[226,302],[230,360],[230,400]],[[200,316],[216,316]]
-      ]), dots:[[170,438,7,8]]};
-    }
-    return {d:'', dots:[]};
-  }
-  buildBodyD(name){
-    const C=(a)=>this.circ(a[0],a[1],a[2]);
-    const K=(a,b,wa,wb)=>this.cap(a[0],a[1],b[0],b[1],wa,wb);
-    if(name==='stand'){
-      return {near:this.mirror([
-        [150,40],[172,52],[173,86],
-        [166,100],[190,118],
-        [232,140],[260,168],
-        [272,242],[266,322],[246,332],
-        [238,250],
-        [240,290],[224,352],
-        [200,404],
-        [210,450],[202,512],
-        [180,564],[150,594]
-      ]), far:''};
-    }
-    if(name==='run'){
-      return {near:this.loop([
-        [164,76],[178,82],[180,96],[172,108],
-        [176,120],[184,132],[214,172],[214,186],[196,148],[190,156],[204,178],[180,168],
-        [184,212],[181,256],[190,288],
-        [224,316],[238,338],[226,392],[230,420],[250,426],[236,432],[216,422],[214,392],[220,344],[200,330],
-        [162,300],
-        [140,330],[112,360],[88,398],[66,408],[76,418],[100,406],[126,372],[150,336],[160,310],
-        [158,275],[152,220],[152,166],[154,128],[158,98]
-      ]), far:''};
-    }
-    if(name==='sit'){
-      return {near:this.loop([
-        [152,82],[168,86],[172,100],[166,116],
-        [164,128],[173,160],[175,210],[173,255],
-        [187,288],[222,290],[256,292],[272,300],[272,320],
-        [276,400],[278,500],[294,512],[296,520],
-        [272,520],[268,500],[262,400],[256,330],[250,322],
-        [216,318],[190,316],[178,300],
-        [166,268],[158,218],[156,172],[156,135],[152,104]
-      ]), far:''};
-    }
-    if(name==='lie'){
-      return {near:this.loop([
-        [54,322],[70,310],[88,306],[98,312],[92,326],
-        [106,332],[138,340],[176,350],[202,350],[218,352],
-        [238,338],[262,338],[258,360],[276,366],[288,372],
-        [276,380],[256,372],[244,356],
-        [218,372],[200,378],[168,368],
-        [130,358],[96,348],[72,338],[56,332]
-      ]), far:''};
-    }
-    if(name==='bend'){
-      return {near:this.loop([
-        [244,304],[260,314],[256,328],[240,326],
-        [216,318],[188,318],[162,318],
-        [168,400],[170,438],[164,508],[164,538],[186,548],
-        [162,552],[150,540],[150,510],[150,440],[146,360],
-        [140,308],
-        [158,292],[190,280],[220,288],
-        [232,340],[232,396],[236,410],[224,410],[220,396],[212,340],
-        [210,300],[232,300]
-      ]), far:''};
-    }
-    return {near:'',far:''};
-  }
-  dumbbell(cx,cy){
-    const h=React.createElement;
-    const plate=(x)=>h('rect',{x:x,y:cy-11,width:6,height:22,rx:2,fill:'rgba(150,200,255,.5)',stroke:'rgba(180,220,255,.8)',strokeWidth:0.8});
-    return h('g',{key:'db'+cx+cy},
-      h('rect',{x:cx-14,y:cy-3.5,width:28,height:7,rx:3,fill:'rgba(120,180,255,.4)',stroke:'rgba(180,220,255,.7)',strokeWidth:0.8}),
-      plate(cx-17), plate(cx+11));
-  }
-
-  buildHero(name, reg){
-    const h=React.createElement;
-    const poseMap={meet:'stand',pain:'stand',wearable:'watch',scan:'stand',score:'stand',dashboard:'stand',sleep:'sleep',sitting:'sit',movement:'walk',lifting:'lift'};
-    const active=poseMap[name]||'stand';
-    const poses=['stand','sit','walk','lift','sleep','watch'];
-    const imgs=poses.map(p=>h('img',{key:p,src:`assets/${p}.webp`,draggable:false,style:{position:'absolute',left:'50%',top:'50%',width:'100%',height:'100%',transform:'translate(-50%,-50%)',objectFit:'contain',opacity:p===active?1:0,transition:p===active?'opacity .45s ease .3s':'opacity .3s ease',filter:'drop-shadow(0 0 24px rgba(45,130,225,.4))',pointerEvents:'none',WebkitUserSelect:'none'}}));
-
-    // spine region anchors on the standing/back image (percent of the hero frame; spine is centred)
-    const SR={neck:[50,21],upper:[50,27.5],mid:[50,34.5],lower:[50,42.5]};
-    const tint=(key,xp,yp,col,wp,hp,pulse)=>h('div',{key,style:{position:'absolute',left:xp+'%',top:yp+'%',width:(wp||19)+'%',height:(hp||8)+'%',transform:'translate(-50%,-50%)',borderRadius:'50%',pointerEvents:'none',background:`radial-gradient(ellipse at center, ${col} 0%, ${col} 34%, transparent 72%)`,mixBlendMode:'color',animation:pulse?'pulseGlow 1.2s ease-in-out infinite':'none'}});
-    const bloomDot=(key,xp,yp,col,wp,hp,pulse)=>h('div',{key,style:{position:'absolute',left:xp+'%',top:yp+'%',width:(wp||25)+'%',height:(hp||12)+'%',transform:'translate(-50%,-50%)',borderRadius:'50%',pointerEvents:'none',background:`radial-gradient(ellipse at center, ${col} 0%, transparent 70%)`,mixBlendMode:'screen',animation:pulse?'pulseGlow 1.2s ease-in-out infinite':'none'}});
-
-    const ov=[];
-    if(name==='pain'){
-      Object.keys(this.state.pain).forEach(k=>{ if(this.state.pain[k]){ const r=SR[k];
-        ov.push(tint('pt'+k,r[0],r[1],'rgba(255,42,32,0.95)'));
-        ov.push(bloomDot('pb'+k,r[0],r[1],'rgba(255,60,40,0.65)',23,11,true)); } });
-      [['neck'],['upper'],['mid'],['lower']].forEach(([k])=>{ const r=SR[k]; const on=this.state.pain[k];
-        ov.push(h('button',{key:'hp'+k,onClick:()=>this.togglePain(k),style:{position:'absolute',left:r[0]+'%',top:r[1]+'%',width:'15%',height:'8%',transform:'translate(-50%,-50%)',borderRadius:'30px',cursor:'pointer',background:on?'rgba(255,60,40,0.10)':'rgba(120,200,255,0.05)',border:on?'1px solid rgba(255,95,75,.65)':'1px dashed rgba(150,205,255,.4)',transition:'all .25s ease'}})); });
-    }
-    if(name==='score'){
-      const segs=[['c',reg.c,21],['t',reg.t,31],['l',reg.l,42]];
-      segs.forEach(([id,v,yp])=>{ const rgb=v>72?'54,224,161':v>50?'255,176,32':'255,86,70';
-        ov.push(tint('sc'+id,50,yp,`rgba(${rgb},0.92)`,21,12));
-        if(v<=50) ov.push(bloomDot('sb'+id,50,yp,`rgba(${rgb},0.5)`,25,13,true)); });
-    }
-    if(name==='lifting'){
-      const t=Math.min(1,Math.max(0,(this.state.lift-5)/40));
-      const rgb=t>0.6?'255,52,30':t>0.3?'255,110,35':'255,160,40';
-      ov.push(bloomDot('lf',39,44,`rgba(${rgb},${(0.32+0.5*t).toFixed(2)})`,11+8*t,6+5*t,true));
-      ov.push(tint('lft',39,44,`rgba(${rgb},${(0.5+0.4*t).toFixed(2)})`,8+5*t,5+3*t));
-    }
-    if(name==='sitting'){
-      const t=Math.min(1,Math.max(0,(this.state.sitHrs-3)/11));
-      const rgb=t>0.7?'255,60,35':t>0.4?'255,120,40':'255,165,45';
-      ov.push(bloomDot('st',42,46,`rgba(${rgb},${(0.28+0.48*t).toFixed(2)})`,11+8*t,6+5*t,true));
-      ov.push(tint('stt',42,46,`rgba(${rgb},${(0.42+0.42*t).toFixed(2)})`,8+5*t,5+3*t));
-    }
-
-    const noZoom=(name==='meet'||name==='wearable');
-    const inner=h('div',{key:'zoomwrap',style:{position:'absolute',inset:0,transform:noZoom?'scale(1)':'scale(1.34)',transformOrigin:'50% 28%',transition:'transform .6s cubic-bezier(.4,0,.2,1)'}}, ...imgs, ...ov);
-    return h('div',{style:{position:'absolute',inset:0,isolation:'isolate'}}, inner);
-  }
-
-  // ---------- particles ----------
-  buildParticles(){
-    const h=React.createElement;
-    if(!this._parts){ this._parts=Array.from({length:26},()=>({l:Math.random()*100,t:40+Math.random()*55,s:1+Math.random()*2.4,d:Math.random()*8,dur:7+Math.random()*7})); }
-    return this._parts.map((p,i)=>h('div',{key:i,style:{position:'absolute',left:p.l+'%',top:p.t+'%',width:p.s+'px',height:p.s+'px',borderRadius:'50%',background:'rgba(150,210,255,.8)',boxShadow:'0 0 6px rgba(120,200,255,.8)',animation:`floaty ${p.dur}s linear ${p.d}s infinite`}}));
-  }
-
-  // ---------- render ----------
-  renderVals(){
-    const i=this.state.i, name=this.screens[i];
-    const reg=this.regionScores(), score=this.computeScore();
-    const s=this.state;
-    const chip=(b,t)=>b?[t]:[];
-    const painChips=[...chip(s.pain.neck,'Neck'),...chip(s.pain.upper,'Upper back'),...chip(s.pain.mid,'Mid back'),...chip(s.pain.lower,'Lower back')];
-
-    const pbtn=(on)=>({fontFamily:'inherit',fontSize:'12px',fontWeight:'500',padding:'8px 13px',borderRadius:'20px',cursor:'pointer',whiteSpace:'nowrap',
-      border:on?'1px solid rgba(255,120,100,.6)':'1px solid rgba(120,180,255,.22)',background:on?'rgba(255,90,80,.18)':'rgba(10,28,56,.55)',color:on?'#ffb3a8':'#bcd4f0',backdropFilter:'blur(8px)'});
-    const seg=(on)=>({flex:'1',fontFamily:'inherit',fontSize:'12.5px',fontWeight:'500',padding:'11px 0',borderRadius:'12px',cursor:'pointer',
-      border:on?'1px solid rgba(120,205,255,.55)':'1px solid rgba(120,180,255,.16)',background:on?'rgba(60,150,230,.2)':'rgba(8,22,44,.45)',color:on?'#dff2ff':'#9fb4d2'});
-
-    const risks=[];
-    if(s.pain.lower) risks.push({t:'Lower-back strain',d:'Flagged lumbar region',color:'#ff5a5a'});
-    if(s.sitHrs>8) risks.push({t:'Prolonged sitting',d:s.sitHrs+' hrs/day at a desk',color:'#ffb020'});
-    if(s.lift>25) risks.push({t:'Heavy lifting load',d:s.lift+' kg max load',color:'#ff5a5a'});
-    if(s.pain.neck) risks.push({t:'Neck tension',d:'Flagged cervical region',color:'#ffb020'});
-    if(s.sleepPos==='stomach') risks.push({t:'Stomach sleeping',d:'Strains the cervical curve',color:'#ffb020'});
-    if(s.steps<6000) risks.push({t:'Low daily activity',d:s.steps.toLocaleString()+' steps/day',color:'#ffb020'});
-    if(!risks.length) risks.push({t:'Well balanced',d:'No major risk factors',color:'#36e0a1'});
-
-    const recs=[];
-    if(s.sitHrs>6) recs.push('Stand and reset posture every 30 minutes.');
-    if(s.steps<8000) recs.push('Add a 15-minute walk to reach ~8k steps.');
-    if(s.lift>20) recs.push('Hinge at the hips and brace before lifting.');
-    if(s.sleepPos==='stomach') recs.push('Shift to side-sleeping with a knee pillow.');
-    if(s.pain.lower||s.pain.neck) recs.push('Try daily mobility drills for flagged areas.');
-    if(recs.length<2) recs.push('Maintain your routine and re-scan weekly.');
-
-    const regionBars=[
-      {name:'Cervical',val:reg.c,pct:reg.c,color:this.scColor(reg.c)},
-      {name:'Thoracic',val:reg.t,pct:reg.t,color:this.scColor(reg.t)},
-      {name:'Lumbar',val:reg.l,pct:reg.l,color:this.scColor(reg.l)},
-    ];
-    const band=score>78?'Strong':score>60?'Moderate':'Needs care';
-
-    return {
-      hero:this.buildHero(name,reg), particles:this.buildParticles(), innerRef:this.innerRef, scoreRef:this.scoreRef, gaugeRef:this.gaugeRef,
-      stageDown:(e)=>this.stageDown(e),
-      stepNum:i+1, stepLabel:this.labels[i], progressPct:(i/9)*100, backOpacity:i>0?1:0.25,
-      isMeet:name==='meet',isPain:name==='pain',isSleep:name==='sleep',isSit:name==='sitting',isMove:name==='movement',isLift:name==='lifting',isWear:name==='wearable',isScan:name==='scan',isScore:name==='score',isDash:name==='dashboard',
-      back:()=>this.back(), cta:()=>this.cta(), ctaLabel: name==='meet'?'Begin assessment':name==='score'?'View full report':name==='dashboard'?'Restart assessment':'Continue',
-      showCta: !(name==='scan' && this.state.scanPhase!=='done'),
-      // pain
-      painChips, noPain:painChips.length===0,
-      tapNeck:()=>this.togglePain('neck'),tapUpper:()=>this.togglePain('upper'),tapMid:()=>this.togglePain('mid'),tapLower:()=>this.togglePain('lower'),
-      pstyle:{neck:pbtn(s.pain.neck),upper:pbtn(s.pain.upper),mid:pbtn(s.pain.mid),lower:pbtn(s.pain.lower)},
-      // sleep
-      sleepSide:()=>this.setSleep('side'),sleepBack:()=>this.setSleep('back'),sleepStomach:()=>this.setSleep('stomach'),
-      sstyle:{side:seg(s.sleepPos==='side'),back:seg(s.sleepPos==='back'),stomach:seg(s.sleepPos==='stomach')},
-      sleepHrsLbl:s.sleepHrs.toFixed(1), sleepPct:((s.sleepHrs-3)/7)*100, slideSleep:(e)=>this.slider(e,'sleepHrs',3,10,0.5),
-      // sit / move / lift
-      sitHrs:s.sitHrs, sitPct:(s.sitHrs/14)*100, slideSit:(e)=>this.slider(e,'sitHrs',0,14,1),
-      stepsLbl:s.steps.toLocaleString(), stepPct:(s.steps/15000)*100, slideSteps:(e)=>this.slider(e,'steps',0,15000,500),
-      lift:s.lift, liftPct:(s.lift/50)*100, slideLift:(e)=>this.slider(e,'lift',0,50,1),
-      // wearable
-      sync:()=>this.sync(), syncing:s.syncing, synced:s.synced, notSynced:!s.synced&&!s.syncing,
-      // scan
-      runScan:()=>this.runScan(), scanIdle:s.scanPhase==='idle', scanning:s.scanPhase==='scanning', scanDone:s.scanPhase==='done',
-      // score / dash
-      regionBars, scoreVal:score, scoreColor:this.scColor(Math.round((reg.c+reg.t+reg.l)/3)), scoreBand:band, risks:risks.slice(0,3), recs:recs.slice(0,3),
-    };
-  }
-}
-</script>
-
-<!-- ── Spine Lab educational video popups (matches the X-ray lab style) ── -->
-<style>
-  #svpOpen { position: fixed; top: 50%; right: 10px; transform: translateY(-50%); z-index: 90; width: 40px; height: 40px; border-radius: 50%;
-    border: 1px solid rgba(111,224,255,.35); background: rgba(8,40,79,.55); color: #6fe0ff; font-size: 16px;
-    display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(8px); font-family: 'Sora', system-ui, sans-serif;
-    box-shadow: 0 0 18px -4px rgba(111,224,255,.5); gap: 1px; }
-  #svpOpen:active { transform: translateY(-50%) scale(.92); }
-  #svpMask { position: fixed; inset: 0; z-index: 95; display: none; align-items: center; justify-content: center; padding: 20px;
-    background: rgba(2,8,20,.7); backdrop-filter: blur(10px); font-family: 'Sora', system-ui, sans-serif; }
-  #svpMask.show { display: flex; }
-  .svpCard { position: relative; width: 100%; max-width: 330px; border-radius: 22px; overflow: hidden; background: linear-gradient(180deg,#08284f,#04132b);
-    border: 1px solid rgba(111,224,255,.22); box-shadow: 0 30px 70px -20px #000; }
-  .svpClose { position: absolute; top: 8px; right: 10px; z-index: 3; width: 28px; height: 28px; border-radius: 50%; border: 0;
-    background: rgba(2,10,24,.5); color: #cfe0f5; font-size: 12px; cursor: pointer; display: none; }
-  .svpGateNote { font-size: 11px; color: #6f93bd; text-align: center; margin-top: 9px; }
-  .svpScreen { position: relative; height: 210px; overflow: hidden;
-    background: radial-gradient(120% 90% at 50% 8%, #0d3a6e, #03102b 72%); display: grid; place-items: center; }
-  .svpScreen img { height: 200px; object-fit: contain; filter: drop-shadow(0 0 18px rgba(95,208,255,.55)); }
-  .svpScreen .sweep { position: absolute; left: 0; right: 0; height: 2px; top: 8%;
-    background: linear-gradient(90deg, transparent, #6fe0ff, transparent); box-shadow: 0 0 12px #6fe0ff; animation: svpSweep 2.4s ease-in-out infinite; }
-  @keyframes svpSweep { 0%{top:8%} 100%{top:88%} }
-  .svpPlay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(3,12,28,.35); cursor: pointer; }
-  .svpPlay .b { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,.94); color: #06224a; font-size: 22px; display: grid; place-items: center; box-shadow: 0 8px 28px rgba(95,208,255,.5); }
-  .svpCap { position: absolute; left: 0; right: 0; bottom: 0; padding: 20px 15px 12px; background: linear-gradient(0deg, rgba(3,12,28,.95), transparent); }
-  .svpCap .t { font-size: 10px; letter-spacing: 2px; color: #6fe0ff; text-transform: uppercase; }
-  .svpCap b { display: block; font-size: 15px; font-weight: 600; color: #eaf2ff; margin-top: 2px; }
-  .svpBody { padding: 13px 15px 15px; }
-  .svpBody p { font-size: 12.5px; line-height: 1.5; color: #b8cce6; min-height: 56px; }
-  .svpBar { height: 4px; border-radius: 99px; background: rgba(255,255,255,.1); margin: 11px 0; overflow: hidden; }
-  .svpBar i { display: block; height: 100%; width: 0; background: #6fe0ff; }
-  .svpTime { display: flex; justify-content: space-between; font-size: 10px; color: #6f93bd; margin-bottom: 11px; font-variant-numeric: tabular-nums; }
-  .svpBtn { width: 100%; border: 0; border-radius: 13px; padding: 13px; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 700;
-    color: #02121f; background: linear-gradient(120deg,#6fe0ff,#7aa6ff); }
-  .svpBtn:disabled { opacity: .4; }
-</style>
-
-<button id="svpOpen" aria-label="Learn">ⓘ</button>
-<div id="svpMask">
-  <div class="svpCard">
-    <button class="svpClose" id="svpClose" aria-label="Close">✕</button>
-    <div class="svpScreen">
-      <div class="sweep"></div>
-      <img id="svpImg" src="assets/stand.webp" alt="" />
-      <div class="svpPlay" id="svpPlay"><div class="b">▶</div></div>
-      <div class="svpCap"><span class="t">Spine Lab · Clinic</span><b id="svpTitle">Why we scan</b></div>
-    </div>
-    <div class="svpBody">
-      <p id="svpText"></p>
-      <div class="svpBar"><i id="svpProg"></i></div>
-      <div class="svpTime"><span id="svpCur">0:00</span><span>0:05</span></div>
-      <button class="svpBtn" id="svpDone" disabled>Watch to continue</button>
-      <div class="svpGateNote" id="svpNote">Please watch this short clip to begin</div>
-    </div>
+<!-- video player -->
+<div class="pmask" id="pmask">
+  <div class="pwrap">
+    <div class="pscreen" id="pscreen"></div>
+    <div class="pbar"><i id="pbar"></i></div>
+    <button class="cta sec pclose" id="pclose">Close</button>
   </div>
 </div>
 
 <script>
-  (function () {
-    var CLIPS = [
-      { img: 'assets/stand.webp', title: 'Why we scan', text: 'Your spine has 24 moving vertebrae. This scan maps how your daily posture and habits load each region — cervical, thoracic and lumbar.' },
-      { img: 'assets/sit.webp', title: 'The sitting load', text: 'Sitting raises disc pressure up to 40% versus standing and flattens the protective lumbar curve. Hours add up fast.' },
-      { img: 'assets/lift.webp', title: 'Lifting & flexion', text: 'Bending the spine to lift concentrates force at L4–L5. Hinge at the hips and keep the lumbar curve to protect the discs.' },
-      { img: 'assets/sleep.webp', title: 'Overnight repair', text: 'Discs rehydrate and tissues repair during deep sleep. 7–8 hours keeps your spine resilient.' },
-    ]
-    var idx = 1, timer = null, watched = false, isGate = false
-    var mask = document.getElementById('svpMask'), play = document.getElementById('svpPlay'),
-      prog = document.getElementById('svpProg'), done = document.getElementById('svpDone'),
-      cur = document.getElementById('svpCur'), title = document.getElementById('svpTitle'),
-      text = document.getElementById('svpText'), img = document.getElementById('svpImg'),
-      closeBtn = document.getElementById('svpClose'), note = document.getElementById('svpNote')
-    function open(clip, gate) {
-      isGate = !!gate
-      title.textContent = clip.title; text.textContent = clip.text; img.src = clip.img
-      prog.style.width = '0%'; cur.textContent = '0:00'; play.style.display = 'grid'
-      done.disabled = true; done.textContent = 'Watch to continue'
-      closeBtn.style.display = gate ? 'none' : 'grid'   // gate can't be skipped
-      note.style.display = gate ? 'block' : 'none'
-      mask.classList.add('show')
-    }
-    play.onclick = function () {
-      play.style.display = 'none'; var p = 0; clearInterval(timer)
-      timer = setInterval(function () {
-        p += 0.1; var f = Math.min(1, p / 5)
-        prog.style.width = f * 100 + '%'; cur.textContent = '0:0' + Math.min(5, Math.floor(p))
-        if (f >= 1) { clearInterval(timer); done.disabled = false; done.textContent = isGate ? 'Start assessment ▸' : 'Got it ✓' }
-      }, 100)
-    }
-    function close() { clearInterval(timer); mask.classList.remove('show'); play.style.display = 'none' }
-    done.onclick = function () { if (done.disabled) return; if (isGate) watched = true; close() }
-    closeBtn.onclick = function () { if (!isGate) close() }   // only replays are dismissable
-    document.getElementById('svpOpen').onclick = function () { open(CLIPS[idx++ % CLIPS.length], false) }
+/* ════════════════════════════════════════════════════════════════
+   BackSignal — Personal Spine Severity Score
+   Grounded in: Spine Severity Assessment System (SSS), a 6-step lumbar
+   (lower-back) screening tool — Dr Ayush Sharma, Dept. of Spine Surgery.
+   Lower-back / lumbar focus only. Daily-habit snapshot is informational.
+   ════════════════════════════════════════════════════════════════ */
 
-    // ── mandatory gate on the NEXT step: the first page is clean; once the user
-    //    advances past step 1 the clip must be watched before they can continue ──
-    function focused() {
-      try { var fe = window.frameElement; return fe ? getComputedStyle(fe).pointerEvents !== 'none' : true } catch (e) { return true }
-    }
-    function stepNum() { var m = document.body.innerText.match(/STEP\s*(\d+)\s*\/\s*\d+/i); return m ? +m[1] : 1 }
-    var poll = setInterval(function () {
-      if (watched) { clearInterval(poll); return }
-      if (focused() && stepNum() > 1 && !mask.classList.contains('show')) open(CLIPS[0], true)
-    }, 400)
-  })()
+const APP = {
+  doctor: 'Dr Ayush Sharma',
+  // Paste YouTube IDs here when ready — empty id shows the script placeholder.
+  // Record vertical (9:16) clips; intro 30–45s, step clips ~15–25s.
+  videos: {
+    intro:     { id:'', title:'Why your lower back matters', secs:40,
+      script:'Most lower-back pain is built slowly — by how you sit, move and sleep every day. In two minutes, BackSignal turns your habits and symptoms into one Spine Severity Score, so you know whether to self-care, see a physio, or get checked.' },
+    vas:       { id:'', title:'Rating your pain', secs:18,
+      script:'Pain is the body’s signal. Pick the face that matches your lower back today — it anchors how we read everything else.' },
+    sciatica:  { id:'', title:'Leg pain & sciatica', secs:20,
+      script:'Pain, tingling or numbness travelling down the leg can mean a nerve is irritated in the lower back. How far and how often it travels tells us a lot.' },
+    odi:       { id:'', title:'How it affects your day', secs:22,
+      script:'We measure disability the way spine clinics do — how much pain limits walking, sitting, standing, sleep and daily activities (a Modified Oswestry index).' },
+    bmi:       { id:'', title:'Body load on the spine', secs:16,
+      script:'Extra body weight increases the mechanical load on lumbar discs. Your BMI adds a small, evidence-based weighting to the score.' },
+    chronicity:{ id:'', title:'How long it’s lasted', secs:16,
+      script:'Pain that lingers past six weeks behaves differently to a fresh strain. Duration changes what we recommend.' },
+    redflag:   { id:'', title:'A quick safety check', secs:18,
+      script:'A few symptoms can signal something serious that needs urgent care. We always screen for these red flags before giving a score.' },
+  },
+  links: { website:'https://example.com', research:'https://example.com', youtube:'https://youtube.com' },
+}
+
+const D = {
+  age:35, sex:'', occupation:'',
+  height:170, weight:72,
+  vas:null, sciatica:null,
+  odi:{ Walking:0, Sitting:0, Standing:0, Sleep:0, 'Daily activities':0 },
+  chronicity:null, redflags:[],
+  habits:{ sitting:8, walking:30, exercise:2, sleep:7 }, device:null,
+}
+
+/* ── SSS scoring (exact to the chart) ───────────────────────────── */
+const bmi = () => D.weight / Math.pow(D.height/100, 2)
+const bmiScore = () => { const b=bmi(); return b<25?0 : b<30?1 : 2 }
+const vasPoints = () => D.vas==null?0 : D.vas<=3?0 : D.vas<=6?1 : 2
+const odiTotal = () => Object.values(D.odi).reduce((a,b)=>a+b,0)        // 0–10
+const odiPoints = () => { const t=odiTotal(); return t<=2?0 : t<=5?1 : 2 }
+const chronScore = () => ({acute:0,subacute:1,chronic:2})[D.chronicity] ?? 0
+const hasRedFlag = () => D.redflags.length>0
+function sssTotal(){ return hasRedFlag() ? 11 : vasPoints() + (D.sciatica||0) + odiPoints() + bmiScore() + chronScore() }
+function severity(t){
+  if (hasRedFlag() || t>=10) return { band:'SEVERE / HIGH RISK', color:'var(--red)', hex:'#f87171',
+    desc:'Severe symptoms with possible serious pathology.', mgmt:'Urgent spine-specialist evaluation / advanced care.' }
+  if (t>=7) return { band:'MODERATE–SEVERE', color:'var(--orange)', hex:'#fb923c',
+    desc:'Moderate-to-severe pain and disability; marked limitation.', mgmt:'Spine specialist consultation and advanced care.' }
+  if (t>=4) return { band:'MILD–MODERATE', color:'var(--amber)', hex:'#fbbf24',
+    desc:'Mild-to-moderate pain with some functional limitation.', mgmt:'Physiotherapy, lifestyle correction and evaluation.' }
+  return { band:'LOW', color:'var(--green)', hex:'#34d399',
+    desc:'Minimal pain and low impact on your day.', mgmt:'Education, posture correction and regular exercise.' }
+}
+
+/* ── daily-habit snapshot (informational only) — SSS lifestyle tracker ── */
+function habitRisk(){
+  const {sitting,walking,exercise,sleep}=D.habits
+  let pts=0
+  pts += sitting<6?0 : sitting<=9?1 : 2
+  pts += walking>=45?0 : walking>=20?1 : 2
+  pts += exercise>=3?0 : exercise>=1?1 : 2
+  pts += (sleep>=7&&sleep<=8)?0 : sleep>=5?1 : 2
+  if (pts<=2) return {label:'LOW lifestyle risk', color:'var(--green)'}
+  if (pts<=5) return {label:'MODERATE lifestyle risk', color:'var(--amber)'}
+  return {label:'HIGH lifestyle risk', color:'var(--red)'}
+}
+
+/* ── video player ───────────────────────────────────────────────── */
+const pmask=document.getElementById('pmask'), pscreen=document.getElementById('pscreen'),
+  pbar=document.getElementById('pbar'), pclose=document.getElementById('pclose')
+let ptimer=null
+function videoCard(key){
+  const v=APP.videos[key]; const m=Math.floor(v.secs/60), s=String(v.secs%60).padStart(2,'0')
+  return `<div class="vcard" data-vid="${key}">
+    <div class="thumb"><div class="pl">▶</div></div>
+    <div class="meta"><b>${v.title}</b><span>Why we ask · ${m}:${s}</span></div>
+    <div class="yt">▶ Video</div></div>`
+}
+function openVideo(key){
+  const v=APP.videos[key]; clearInterval(ptimer); pbar.style.width='0%'
+  if (v.id){
+    pscreen.innerHTML = `<iframe src="https://www.youtube.com/embed/${v.id}?rel=0&modestbranding=1&playsinline=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
+    pbar.style.width='100%'
+  } else {
+    pscreen.innerHTML = `<div class="ph">
+        <img class="spineimg" src="assets/stand.webp" alt="" />
+        <div class="pt">${APP.doctor} · Spine Lab</div><h3>${v.title}</h3><p>${v.script}</p>
+      </div>
+      <div class="playbtn" id="pplay"><div class="b">▶</div></div>`
+    const play=document.getElementById('pplay')
+    play.onclick=()=>{ play.style.display='none'; let p=0
+      ptimer=setInterval(()=>{ p+=0.1; const f=Math.min(1,p/v.secs); pbar.style.width=f*100+'%'; if(f>=1)clearInterval(ptimer) },100) }
+  }
+  pmask.classList.add('show')
+}
+pclose.onclick=()=>{ clearInterval(ptimer); pmask.classList.remove('show') }
+
+/* ── faces (VAS) ────────────────────────────────────────────────── */
+function face(v){
+  const cols=['#34d399','#7dd37d','#fbbf24','#fb923c','#f87171','#ef4444']
+  const i=v/2, c=cols[i]
+  const mouth = v<=2?'M8 16q4 3 8 0' : v<=4?'M8 16h8' : v<=6?'M8 17q4 -1 8 0' : 'M8 18q4 -4 8 0'
+  const brow = v>=8?'<path d="M6 8l4 2M18 8l-4 2" stroke="'+c+'" stroke-width="1.6" stroke-linecap="round"/>':''
+  return `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="${c}" stroke-width="1.8"/><circle cx="8.5" cy="10" r="1.1" fill="${c}"/><circle cx="15.5" cy="10" r="1.1" fill="${c}"/><path d="${mouth}" stroke="${c}" stroke-width="1.8" stroke-linecap="round" fill="none"/>${brow}</svg>`
+}
+
+/* ════════════════════ STEPS ════════════════════ */
+const STEPS = [
+  { id:'intro', prog:0, label:['BackSignal',''],
+    render:()=>`
+      <div class="hero"><img src="assets/stand.webp" alt="Lower spine" /><div class="lumglow"></div></div>
+      <div class="eyebrow">${APP.doctor} · Spine Severity System</div>
+      <h1 class="q">Your personal <span class="lumbar">lower-back</span> score</h1>
+      <p class="sub">A doctor-verified, 6-step lumbar screening. Two minutes of questions become one Spine Severity Score — with clear next steps.</p>
+      ${videoCard('intro')}
+      <div class="trust" style="border:0;padding-top:14px;margin-top:14px;text-align:left">
+        <span class="by">Built on the Spine Severity System (SSS)</span> by ${APP.doctor}, Dept. of Spine Surgery.
+        &nbsp;<a href="${APP.links.website}" target="_blank" rel="noopener">Learn more →</a>
+      </div>`,
+    cta:'Begin assessment', next:'device' },
+
+  { id:'device', prog:.08, back:true, label:['Connect','Optional'],
+    render:()=>`
+      <div class="eyebrow">Faster & more accurate</div>
+      <h1 class="q">Connect a health device</h1>
+      <p class="sub">Auto-fill your recurring data — sleep, steps and activity — so you type less. Your habits update over time. You can also enter everything manually.</p>
+      <div id="devlist">
+        ${[['Apple Health','🍎'],['Google Fit','🟢'],['Fitbit','⌚']].map(([n,i])=>`<div class="dev" data-dev="${n}"><span class="di">${i}</span><div><b>${n}</b><span>Sleep · steps · activity</span></div><span class="arr">›</span></div>`).join('')}
+      </div>
+      <div id="devbox"></div>`,
+    init:()=>{
+      const box=document.getElementById('devbox')
+      document.querySelectorAll('#devlist .dev').forEach(el=>el.onclick=()=>{
+        if(box.dataset.busy)return; box.dataset.busy='1'
+        document.querySelectorAll('#devlist .dev').forEach(x=>x.style.opacity=x===el?'1':'.4')
+        box.innerHTML=`<div style="text-align:center;padding:18px 0;color:var(--mut);font-size:13px"><span class="spin"></span> Syncing ${el.dataset.dev}…</div>`
+        setTimeout(()=>{ D.device=el.dataset.dev; D.habits.walking=38; D.habits.sleep=6
+          box.innerHTML=`<div class="synced">✓ Connected to ${el.dataset.dev}</div>
+            <div class="srow"><span class="k">Avg steps / day</span><span class="v">6,240</span></div>
+            <div class="srow"><span class="k">Walking</span><span class="v">~38 min/day</span></div>
+            <div class="srow"><span class="k">Sleep</span><span class="v">6h 05m/night</span></div>`
+          box.dataset.busy=''; setFoot() },1500)
+      })
+    },
+    cta:()=>D.device?'Continue':'Enter manually', next:'about' },
+
+  { id:'about', prog:.16, back:true, label:['About you',''],
+    render:()=>`
+      <div class="eyebrow">A few basics</div>
+      <h1 class="q">About you</h1>
+      <p class="sub">Used to calibrate your score to your age and body load. Lower-back focus only.</p>
+      <div class="field"><label>Age</label><input id="age" type="number" inputmode="numeric" value="${D.age}" min="12" max="100"/></div>
+      <div class="field"><label>Sex</label>
+        <div class="chips two" id="sex">${['Male','Female'].map(s=>`<button class="chip ${D.sex===s?'on':''}" data-s="${s}" style="text-align:center">${s}</button>`).join('')}</div></div>
+      <div class="field"><label>Occupation</label><input id="occ" type="text" placeholder="e.g. Software engineer" value="${D.occupation}"/></div>
+      <div class="row2">
+        <div class="field"><label>Height (cm)</label><input id="ht" type="number" inputmode="numeric" value="${D.height}"/></div>
+        <div class="field"><label>Weight (kg)</label><input id="wt" type="number" inputmode="numeric" value="${D.weight}"/></div>
+      </div>`,
+    init:()=>{
+      const bind=(id,key,num)=>{const e=document.getElementById(id); e.oninput=()=>{ D[key]=num?+e.value:e.value }}
+      bind('age','age',1); bind('occ','occupation',0); bind('ht','height',1); bind('wt','weight',1)
+      document.querySelectorAll('#sex .chip').forEach(b=>b.onclick=()=>{D.sex=b.dataset.s; document.querySelectorAll('#sex .chip').forEach(x=>x.classList.toggle('on',x===b))})
+    },
+    cta:'Continue', next:'vas' },
+
+  { id:'vas', prog:.28, back:true, label:['Step 1 / 6','Pain'],
+    render:()=>`
+      <div class="eyebrow">Step 1 · Back pain (VAS)</div>
+      <h1 class="q">How bad is your <span class="lumbar">lower back</span> today?</h1>
+      <p class="sub">Pick the face that matches your pain right now.</p>
+      ${videoCard('vas')}
+      <div class="faces" id="faces">${[0,2,4,6,8,10].map(v=>`<div class="face ${D.vas===v?'on':''}" data-v="${v}">${face(v)}<span>${v}</span></div>`).join('')}</div>
+      <div class="vaslbl" id="vaslbl"></div>`,
+    init:()=>{
+      const lbl=document.getElementById('vaslbl')
+      const upd=()=>{ lbl.innerHTML = D.vas==null?'' : (D.vas<=3?'<span style="color:var(--green)">Mild (0–3)</span>':D.vas<=6?'<span style="color:var(--amber)">Moderate (4–6)</span>':'<span style="color:var(--red)">Severe (7–10)</span>') }
+      document.querySelectorAll('#faces .face').forEach(f=>f.onclick=()=>{D.vas=+f.dataset.v; document.querySelectorAll('#faces .face').forEach(x=>x.classList.toggle('on',x===f)); upd(); setFoot()})
+      upd()
+    },
+    canNext:()=>D.vas!=null, cta:'Continue', next:'sciatica' },
+
+  { id:'sciatica', prog:.42, back:true, label:['Step 2 / 6','Sciatica'],
+    render:()=>`
+      <div class="eyebrow">Step 2 · Leg pain / sciatica</div>
+      <h1 class="q">Pain or numbness down the leg?</h1>
+      <p class="sub">Pain travelling from the lower back into the leg can mean an irritated nerve.</p>
+      ${videoCard('sciatica')}
+      <div class="chips" id="sci">${[
+        [0,'None','No leg pain, or only occasional'],
+        [1,'Mild','Mild symptoms, not limiting'],
+        [2,'Moderate','Pain/numbness in the leg, limits some activity'],
+        [3,'Severe','Constant pain or numbness, affects walking'],
+      ].map(([v,t,d])=>`<button class="chip ${D.sciatica===v?'on':''}" data-v="${v}">${t}<b>${d}</b></button>`).join('')}</div>`,
+    init:()=>document.querySelectorAll('#sci .chip').forEach(b=>b.onclick=()=>{D.sciatica=+b.dataset.v; document.querySelectorAll('#sci .chip').forEach(x=>x.classList.toggle('on',x===b)); setFoot()}),
+    canNext:()=>D.sciatica!=null, cta:'Continue', next:'odi' },
+
+  { id:'odi', prog:.56, back:true, label:['Step 3 / 6','Function'],
+    render:()=>`
+      <div class="eyebrow">Step 3 · Daily function (ODI)</div>
+      <h1 class="q">How much does it limit you?</h1>
+      <p class="sub">Rate each activity (Modified Oswestry Disability Index).</p>
+      ${videoCard('odi')}
+      <div class="odi" id="odi">${Object.keys(D.odi).map(act=>`
+        <div class="odirow"><div class="n">${act}</div>
+          <div class="seg" data-act="${act}">
+            <button class="g ${D.odi[act]===0?'on':''}" data-v="0">Normal</button>
+            <button class="a ${D.odi[act]===1?'on':''}" data-v="1">Mild</button>
+            <button class="r ${D.odi[act]===2?'on':''}" data-v="2">Severe</button>
+          </div></div>`).join('')}</div>
+      <div class="odisum" id="odisum"></div>`,
+    init:()=>{
+      const sum=document.getElementById('odisum')
+      const upd=()=>{ const t=odiTotal(); sum.innerHTML=`Disability index: <b style="color:#fff">${t} / 10</b>` }
+      document.querySelectorAll('#odi .seg').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+        D.odi[seg.dataset.act]=+b.dataset.v; seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); upd()
+      }))
+      upd()
+    },
+    cta:'Continue', next:'bmi' },
+
+  { id:'bmi', prog:.66, back:true, label:['Step 4 / 6','Body load'],
+    render:()=>{
+      const b=bmi(), sc=bmiScore(), cat=b<25?'Healthy range':b<30?'Overweight':'Obese', col=sc===0?'var(--green)':sc===1?'var(--amber)':'var(--red)'
+      return `
+      <div class="eyebrow">Step 4 · Body load (BMI)</div>
+      <h1 class="q">Mechanical load on your spine</h1>
+      <p class="sub">Calculated from your height and weight. Higher BMI adds load to the lumbar discs.</p>
+      ${videoCard('bmi')}
+      <div class="ring" style="margin-top:18px"><svg width="150" height="150" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/><circle cx="60" cy="60" r="52" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round" stroke-dasharray="326" stroke-dashoffset="${326-Math.min(1,b/40)*326}"/></svg>
+        <div class="num"><b style="color:${col};font-size:38px">${b.toFixed(1)}</b><span>BMI</span><small style="color:${col}">${cat}</small></div></div>
+      <div class="field"><label>Adjust weight (kg)</label><input id="wt2" type="number" inputmode="numeric" value="${D.weight}"/></div>`
+    },
+    init:()=>{ const e=document.getElementById('wt2'); e.oninput=()=>{ D.weight=+e.value||D.weight; const s=STEPS.find(x=>x.id==='bmi'); render() } },
+    cta:'Continue', next:'chronicity' },
+
+  { id:'chronicity', prog:.8, back:true, label:['Step 5 / 6','Duration'],
+    render:()=>`
+      <div class="eyebrow">Step 5 · How long</div>
+      <h1 class="q">How long has it lasted?</h1>
+      <p class="sub">Duration changes how lower-back pain is managed.</p>
+      ${videoCard('chronicity')}
+      <div class="chips" id="chr">${[
+        ['acute','Acute','Less than 3 weeks'],
+        ['subacute','Subacute','3 to 6 weeks'],
+        ['chronic','Chronic','More than 6 weeks'],
+      ].map(([v,t,d])=>`<button class="chip ${D.chronicity===v?'on':''}" data-v="${v}">${t}<b>${d}</b></button>`).join('')}</div>`,
+    init:()=>document.querySelectorAll('#chr .chip').forEach(b=>b.onclick=()=>{D.chronicity=b.dataset.v; document.querySelectorAll('#chr .chip').forEach(x=>x.classList.toggle('on',x===b)); setFoot()}),
+    canNext:()=>D.chronicity!=null, cta:'Continue', next:'redflag' },
+
+  { id:'redflag', prog:.9, back:true, label:['Step 6 / 6','Safety'],
+    render:()=>`
+      <div class="eyebrow">Step 6 · Safety check (red flags)</div>
+      <h1 class="q">Any of these apply?</h1>
+      <p class="sub">Tick anything you currently have. If none, leave them unchecked.</p>
+      ${videoCard('redflag')}
+      <div class="flags" id="flags">${[
+        'History of cancer','Unexplained weight loss','Fever / infection','Recent major trauma',
+        'Loss of bladder or bowel control','Numbness around the saddle area','Progressive leg weakness',
+      ].map(f=>`<div class="flag ${D.redflags.includes(f)?'on':''}" data-f="${f}"><span class="bx">${D.redflags.includes(f)?'✓':''}</span>${f}</div>`).join('')}</div>
+      <div class="warn">⚠ Any red flag can signal serious pathology and means urgent medical review — your score will reflect that.</div>`,
+    init:()=>document.querySelectorAll('#flags .flag').forEach(el=>el.onclick=()=>{
+      const f=el.dataset.f; const i=D.redflags.indexOf(f)
+      if(i>=0)D.redflags.splice(i,1); else D.redflags.push(f)
+      el.classList.toggle('on'); el.querySelector('.bx').textContent=D.redflags.includes(f)?'✓':''
+    }),
+    cta:'See my habits', next:'habits' },
+
+  { id:'habits', prog:.96, back:true, label:['Daily habits','Information only'],
+    render:()=>{
+      const r=habitRisk()
+      return `
+      <div class="eyebrow">Daily habit snapshot</div>
+      <h1 class="q">Your lifestyle pattern</h1>
+      <p class="sub">${D.device?`Pulled from ${D.device}.`:'Set these to match your week.'} This is tracked over time — it doesn’t change today’s clinical score, but it’s where most lower-back pain begins.</p>
+      ${[['sitting','Sitting','hrs/day',2,14,1],['walking','Walking','min/day',0,90,5],['exercise','Exercise','days/wk',0,7,1],['sleep','Sleep','hrs/night',3,10,1]]
+        .map(([k,t,u,mn,mx])=>`<div class="hsl"><div class="top"><span>${t}</span><span><b id="hv_${k}">${D.habits[k]}</b> ${u}</span></div>
+          <input type="range" id="hs_${k}" min="${mn}" max="${mx}" step="${k==='walking'?5:1}" value="${D.habits[k]}"></div>`).join('')}
+      <div class="tag" id="hrisk" style="background:${r.color}22;color:${r.color}">${r.label}</div>`
+    },
+    init:()=>{
+      const upd=()=>{ const r=habitRisk(); const t=document.getElementById('hrisk'); t.textContent=r.label; t.style.background=r.color+'22'; t.style.color=r.color }
+      ;['sitting','walking','exercise','sleep'].forEach(k=>{ const s=document.getElementById('hs_'+k), v=document.getElementById('hv_'+k)
+        const set=()=>{ D.habits[k]=+s.value; v.textContent=s.value; s.style.setProperty('--p',((s.value-s.min)/(s.max-s.min))*100+'%'); upd() }
+        s.oninput=set; set() })
+    },
+    cta:'Get my Spine Score', next:'result' },
+
+  { id:'result', prog:1, label:['Your result',''], result:true,
+    render:()=>{
+      const t=sssTotal(), sv=severity(t), r=habitRisk()
+      const off=326-(t/11)*326
+      const rows=[['Back pain (VAS)',`${D.vas??'–'}/10 · ${vasPoints()}pt`],['Sciatica',`${D.sciatica??'–'}/3`],
+        ['Disability (ODI)',`${odiTotal()}/10 · ${odiPoints()}pt`],['Body load (BMI)',`${bmi().toFixed(1)} · ${bmiScore()}pt`],
+        ['Chronicity',`${D.chronicity||'–'} · ${chronScore()}pt`],['Red flags',hasRedFlag()?'Present':'None']]
+      return `
+      <div class="hero" style="margin-top:0"><img src="assets/stand.webp" alt="" style="height:200px"/><div class="lumglow" style="background:radial-gradient(circle,${sv.hex},transparent 62%);opacity:.7"></div></div>
+      <div class="eyebrow" style="text-align:center">Spine Severity Score</div>
+      <div class="ring"><svg width="170" height="170" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/><circle id="rring" cx="60" cy="60" r="52" fill="none" stroke="${sv.color}" stroke-width="10" stroke-linecap="round" stroke-dasharray="326" stroke-dashoffset="326"/></svg>
+        <div class="num"><b id="rnum" style="color:${sv.color}">0</b><span>out of 11</span></div></div>
+      <div style="text-align:center"><span class="tag" style="background:${sv.color}22;color:${sv.color}">${sv.band}</span></div>
+      ${hasRedFlag()?`<div class="warn" style="margin-top:14px">⚠ You flagged a possible serious symptom. Please seek <b>urgent medical evaluation</b> — don’t wait on this score.</div>`:''}
+      <div class="mgmt" style="background:${sv.color}14;border:1px solid ${sv.color}40"><b>${sv.desc}</b><br/><span style="color:var(--mut)">Suggested: </span>${sv.mgmt}</div>
+      <div class="bd">${rows.map(([n,v])=>`<div class="b"><span class="n">${n}</span><span class="v">${v}</span></div>`).join('')}</div>
+      <div class="bd" style="margin-top:10px"><div class="b"><span class="n">Lifestyle pattern</span><span class="v" style="color:${r.color}">${r.label}</span></div></div>
+      <div class="trust"><span class="by">${APP.doctor}</span> · Dept. of Spine Surgery — Spine Severity System (SSS)<br/>
+        <a href="${APP.links.website}" target="_blank" rel="noopener">Website</a> · <a href="${APP.links.youtube}" target="_blank" rel="noopener">Videos</a> · <a href="${APP.links.research}" target="_blank" rel="noopener">Research</a></div>
+      <div class="disc">For lower-back screening and decision support only — not a diagnosis or a substitute for clinical judgment.</div>`
+    },
+    init:()=>{
+      const t=sssTotal(), sv=severity(t), ring=document.getElementById('rring'), num=document.getElementById('rnum')
+      requestAnimationFrame(()=>{ ring.style.transition='stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)'; ring.style.strokeDashoffset=326-(t/11)*326 })
+      let n=0; const iv=setInterval(()=>{ n++; if(n>=t){n=t;clearInterval(iv)} num.textContent=n }, 90)
+    },
+    cta:'Retake assessment', next:'intro' },
+]
+
+/* ── flow engine ────────────────────────────────────────────────── */
+let idx=0
+const scroll=document.getElementById('scroll'), foot=document.getElementById('foot')
+function setFoot(){
+  const s=STEPS[idx]; const label=typeof s.cta==='function'?s.cta():s.cta
+  const disabled = s.canNext && !s.canNext()
+  foot.innerHTML=`<button class="cta" id="cta" ${disabled?'disabled':''}>${label} ${s.result?'↻':'→'}</button>`
+  document.getElementById('cta').onclick=()=>{ if(disabled)return; goTo(s.next) }
+}
+function render(){
+  const s=STEPS[idx]
+  document.getElementById('prog').style.width=(s.prog*100)+'%'
+  document.getElementById('lblL').textContent=s.label[0]; document.getElementById('lblR').textContent=s.label[1]
+  scroll.innerHTML=(s.back?'<button class="back" id="bk">‹ Back</button>':'')+s.render()
+  scroll.scrollTop=0
+  if(s.back)document.getElementById('bk').onclick=()=>{ idx=Math.max(0,idx-1); render() }
+  scroll.querySelectorAll('[data-vid]').forEach(el=>el.onclick=()=>openVideo(el.dataset.vid))
+  s.init&&s.init()
+  setFoot()
+}
+function goTo(id){ const i=STEPS.findIndex(s=>s.id===id); if(i>=0){ idx=i; render() } }
+render()
 </script>
 </body>
 </html>
