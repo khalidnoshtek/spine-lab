@@ -67,7 +67,8 @@
 
   .pmask{position:fixed;inset:0;z-index:60;background:rgba(2,8,20,.85);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:18px}
   .pmask.show{display:flex}
-  .pwrap{width:100%;max-width:300px}
+  .pwrap{position:relative;width:100%;max-width:300px}
+  .pX{position:absolute;top:8px;right:8px;z-index:4;width:30px;height:30px;border-radius:50%;border:0;background:rgba(2,10,24,.6);color:#cfe0f5;font-size:13px;cursor:pointer;display:none;backdrop-filter:blur(4px)}
   .pscreen{position:relative;width:100%;aspect-ratio:9/16;border-radius:20px;overflow:hidden;background:radial-gradient(120% 80% at 50% 6%,#0d3a6e,#04132b 72%);border:1px solid var(--line)}
   .pscreen iframe{width:100%;height:100%;border:0;display:block}
   .pscreen .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px 22px}
@@ -171,6 +172,7 @@
 <div id="app"></div>
 <div class="toast" id="toast"></div>
 <div class="pmask" id="pmask"><div class="pwrap">
+  <button class="pX" id="pX" aria-label="Close">✕</button>
   <div class="pscreen" id="pscreen"></div>
   <div class="pbar"><i id="pbar"></i></div>
   <div class="ptime" id="ptime">0:00 / 0:05</div>
@@ -251,13 +253,16 @@ function openVideo(key,wkey,onDone){
   pdone.disabled=true; pdone.textContent='Watch to continue'
   if(v.id){ pscreen.innerHTML=`<iframe src="https://www.youtube.com/embed/${v.id}?rel=0&modestbranding=1&playsinline=1&autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>` }
   else{ pscreen.innerHTML=`<div class="ph"><img src="assets/stand.webp" alt=""/><div class="pt">${APP.doctor} · Spine Lab</div><h3>${v.title}</h3><p>${v.script}</p></div>` }
-  pmask.classList.add('show')
+  pmask.classList.add('show'); pmask.dataset.wk=wkey||key
+  const replay=!!watched[wkey||key]            // already seen → user may close anytime
+  document.getElementById('pX').style.display=replay?'grid':'none'
+  if(replay){ pdone.disabled=false; pdone.textContent='Close' }
   let p=0; ptimer=setInterval(()=>{ p+=0.1; const f=Math.min(1,p/5); pbar.style.width=f*100+'%'; ptime.textContent='0:0'+Math.min(5,Math.floor(p))+' / 0:05'
-    if(f>=1){ clearInterval(ptimer); pdone.disabled=false; pdone.textContent='Continue ✓' } },100)
-  pmask.dataset.wk=wkey||key
+    if(f>=1){ clearInterval(ptimer); if(!replay){ pdone.disabled=false; pdone.textContent='Continue ✓' } } },100)
 }
 pdone.onclick=()=>{ if(pdone.disabled)return; clearInterval(ptimer); pmask.classList.remove('show')
   const wk=pmask.dataset.wk; if(!watched[wk]){ watched[wk]=true; award(10,'Watched') } const cb=pcb; pcb=null; if(cb)cb() }
+document.getElementById('pX').onclick=()=>{ clearInterval(ptimer); pmask.classList.remove('show'); pcb=null }
 
 /* ── faces ── */
 function face(v){ const cols=['#34d399','#7dd37d','#fbbf24','#fb923c','#f87171','#ef4444']; const c=cols[v/2]
@@ -344,8 +349,13 @@ const STEPS=[
       <div class="eyebrow" style="text-align:center">Spine Severity Score</div>
       <div class="ring"><svg width="168" height="168" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/><circle id="rring" cx="60" cy="60" r="52" fill="none" stroke="${sv.color}" stroke-width="10" stroke-linecap="round" stroke-dasharray="326" stroke-dashoffset="326"/></svg><div class="num"><b id="rnum" style="color:${sv.color}">0</b><span>out of 11</span></div></div>
       <div style="text-align:center"><span class="tag" style="background:${sv.color}22;color:${sv.color}">${sv.band}</span></div>
-      ${hasRedFlag()?`<div class="warn" style="margin-top:14px">⚠ You flagged a possible serious symptom — please seek <b>urgent medical evaluation</b>.</div>`:''}
-      <div class="mgmt" style="background:${sv.color}14;border:1px solid ${sv.color}40"><b>${sv.desc}</b><br/><span style="color:var(--mut)">Suggested: </span>${sv.mgmt}</div>
+      ${hasRedFlag()?`<div class="warn" style="margin-top:14px"><span style="font-size:16px;line-height:1">⚠</span><div><b style="display:block;margin-bottom:3px">Possible serious symptom flagged</b>Please seek urgent medical evaluation — don’t rely on this score.</div></div>`:''}
+      <div class="mgmt" style="background:${sv.color}14;border:1px solid ${sv.color}40">
+        <div style="font-size:14px;font-weight:600;color:#fff;line-height:1.45">${sv.desc}</div>
+        <div style="margin-top:11px;padding-top:11px;border-top:1px solid ${sv.color}33;display:flex;gap:10px;align-items:flex-start">
+          <span style="font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:${sv.color};font-weight:700;flex:none;margin-top:2px">Next step</span>
+          <span style="font-size:13px;color:#dbe8fa;line-height:1.45">${sv.mgmt}</span>
+        </div></div>
       <div class="card"><h3>Score breakdown</h3><div class="bd">${rows.map(([n,v])=>`<div class="b"><span class="n">${n}</span><span class="v">${v}</span></div>`).join('')}</div></div>
       <div class="trust"><span class="by">${APP.doctor}</span> · Dept. of Spine Surgery — SSS<br/><a href="${APP.links.website}" target="_blank" rel="noopener">Website</a> · <a href="${APP.links.youtube}" target="_blank" rel="noopener">Videos</a> · <a href="${APP.links.research}" target="_blank" rel="noopener">Research</a></div>
       <div class="disc">Lower-back screening & decision support only — not a diagnosis.</div>` },
