@@ -59,8 +59,9 @@ auto-filled from a connected health device and updates over time.
   `src` (a self-hosted MP4 — preferred) or a YouTube `id` (fallback); with
   neither, the `script` text shows as a placeholder. The intro ships with a
   real clip at `assets/video/intro.mp4`. When a `src` is set the popup plays a
-  native `<video>` and the watch-gate is driven by **actual playback** (starts
-  muted with a "Tap for sound" control; unlocks when the clip ends). Record
+  native `<video>` and the watch-gate is driven by **actual playback** (shows a
+  poster with a play button, plays with sound on tap, unlocks when the clip
+  ends). An optional `poster` field sets the still shown before play. Record
   vertical 9:16 clips — intro 30–45s, step clips ~15–25s — and encode with:
   `ffmpeg -i raw.mov -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 22 -c:a aac -b:a 128k -movflags +faststart assets/video/<step>.mp4`
 - **Links:** `APP.links` (website / research / youtube).
