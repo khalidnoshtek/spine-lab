@@ -79,6 +79,9 @@
   .pX{position:absolute;top:8px;right:8px;z-index:4;width:30px;height:30px;border-radius:50%;border:0;background:rgba(2,10,24,.6);color:#cfe0f5;cursor:pointer;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
   .pscreen{position:relative;width:100%;aspect-ratio:9/16;border-radius:20px;overflow:hidden;background:radial-gradient(120% 80% at 50% 6%,#0d3a6e,#04132b 72%);border:1px solid var(--line)}
   .pscreen iframe{width:100%;height:100%;border:0;display:block}
+  .pscreen video{width:100%;height:100%;display:block;object-fit:cover;background:#04132b}
+  .punmute{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:6px;background:rgba(2,10,24,.62);border:1px solid rgba(95,208,255,.45);color:var(--cyan);font-family:inherit;font-size:11.5px;font-weight:700;padding:7px 13px;border-radius:99px;cursor:pointer;backdrop-filter:blur(6px);animation:pulseSoft 2s ease-in-out infinite}
+  @keyframes pulseSoft{0%,100%{box-shadow:0 0 0 0 rgba(95,208,255,.35)}50%{box-shadow:0 0 0 7px rgba(95,208,255,0)}}
   .pscreen .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px 22px}
   .pscreen .ph img{width:46px;opacity:.85;margin-bottom:13px;filter:drop-shadow(0 0 16px rgba(95,208,255,.5))}
   .pscreen .ph .pt{font-size:10px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase}
@@ -227,6 +230,8 @@ const IC={
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   water:'<path d="M12 3c4 5 6 8 6 11a6 6 0 11-12 0c0-3 2-6 6-11z"/>',
   bolt:'<path d="M13 3L5 13h6l-1 8 8-11h-6z"/>',
+  sound:'<path d="M5 9v6h4l5 4V5L9 9z"/><path d="M16.5 9.5c1.2 1.2 1.2 3.8 0 5M19 7c2.2 2.2 2.2 7.8 0 10"/>',
+  mute:'<path d="M5 9v6h4l5 4V5L9 9z"/><path d="M16 10l5 4M21 10l-5 4"/>',
 }
 const icon=(n,s=20,cls='')=>`<svg class="ic ${cls}" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden>${IC[n]||''}</svg>`
 const LOGO={ // recognisable brand marks, themed in our cyan
@@ -254,7 +259,7 @@ function step(){
 /* ════════════ config ════════════ */
 const APP={ doctor:'Dr Ayush Sharma', links:{website:'https://example.com',research:'https://example.com',youtube:'https://youtube.com'},
   videos:{
-    intro:{id:'',title:'Why your lower back matters',script:'Most lower-back pain is built slowly — by how you sit, move and sleep. BackSignal turns your habits and symptoms into one Spine Severity Score, then tracks you daily.'},
+    intro:{src:'assets/video/intro.mp4',id:'',title:'Why your lower back matters',script:'Most lower-back pain is built slowly — by how you sit, move and sleep. BackSignal turns your habits and symptoms into one Spine Severity Score, then tracks you daily.'},
     vas:{id:'',title:'Rating your pain',script:'Pain is the body’s signal. Pick the face that matches your lower back right now.'},
     sciatica:{id:'',title:'Leg pain & sciatica',script:'Pain or numbness travelling down the leg can mean an irritated nerve in the lower back.'},
     odi:{id:'',title:'How it affects your day',script:'We measure disability the way spine clinics do — across walking, sitting, standing, sleep and daily activities.'},
@@ -318,18 +323,33 @@ function award(n,label,burst){ if(n)S.points+=n; save(); toastEl.innerHTML=`${ic
 /* ════════════ video (5s gate + replay close) ════════════ */
 const pmask=document.getElementById('pmask'),pscreen=document.getElementById('pscreen'),pbar=document.getElementById('pbar'),pdone=document.getElementById('pdone'),ptime=document.getElementById('ptime'),pXb=document.getElementById('pX')
 pXb.innerHTML=icon('x',14)
-let ptimer=null,pcb=null
+let ptimer=null,pcb=null,pvid=null
+const mmss=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function stopVid(){ if(pvid){try{pvid.pause()}catch(e){} pvid.removeAttribute('src'); pvid=null} clearInterval(ptimer); pscreen.innerHTML='' }
 function videoCard(key,id){ const v=APP.videos[key],done=watched[id||key]
   return `<div class="vcard ${done?'done':''}" data-vid="${key}" data-vk="${id||key}"><div class="thumb">${icon('play',16,'f')}</div><div class="meta"><b>${v.title}</b><span>${done?'Watched':'Why we ask · 0:05'}</span></div><div class="yt">${done?icon('check',16):'Watch'}</div></div>` }
 function openVideo(key,wkey,onDone){
-  const v=APP.videos[key]; pcb=onDone||null; clearInterval(ptimer); pbar.style.width='0%'; ptime.textContent='0:00 / 0:05'; pdone.disabled=true; pdone.textContent='Watch to continue'
-  pscreen.innerHTML=v.id?`<iframe src="https://www.youtube.com/embed/${v.id}?rel=0&modestbranding=1&playsinline=1&autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`:`<div class="ph"><img src="assets/stand.webp" alt=""/><div class="pt">${APP.doctor} · Spine Lab</div><h3>${v.title}</h3><p>${v.script}</p></div>`
-  pmask.classList.add('show'); pmask.dataset.wk=wkey||key
-  const replay=!!watched[wkey||key]; pXb.style.display=replay?'flex':'none'; if(replay){pdone.disabled=false;pdone.textContent='Close'}
-  let p=0; ptimer=setInterval(()=>{ p+=0.1; const f=Math.min(1,p/5); pbar.style.width=f*100+'%'; ptime.textContent='0:0'+Math.min(5,Math.floor(p))+' / 0:05'; if(f>=1){clearInterval(ptimer); if(!replay){pdone.disabled=false;pdone.textContent='Continue'}} },100)
+  const v=APP.videos[key]; pcb=onDone||null; stopVid(); pbar.style.width='0%'; pdone.disabled=true; pdone.textContent='Watch to continue'
+  const wk=wkey||key,replay=!!watched[wk]
+  pmask.classList.add('show'); pmask.dataset.wk=wk; pXb.style.display=replay?'flex':'none'
+  const unlock=()=>{ if(!replay){pdone.disabled=false;pdone.textContent='Continue'} }
+  if(v.src){                                   // ── real video: gate on actual playback ──
+    ptime.textContent='0:00'
+    pscreen.innerHTML=`<video id="pvid" playsinline preload="auto" src="${v.src}"></video><button class="punmute" id="punmute">${icon('sound',13)} Tap for sound</button>`
+    const vid=document.getElementById('pvid'),unb=document.getElementById('punmute'); pvid=vid; vid.muted=true; vid.play().catch(()=>{})
+    unb.onclick=()=>{ vid.muted=false; vid.volume=1; unb.style.display='none'; if(vid.paused)vid.play().catch(()=>{}) }
+    if(replay){pdone.disabled=false;pdone.textContent='Close'}
+    vid.ontimeupdate=()=>{ const d=vid.duration||1,f=Math.min(1,vid.currentTime/d); pbar.style.width=f*100+'%'; ptime.textContent=mmss(vid.currentTime)+' / '+mmss(d); if(f>=0.992)unlock() }
+    vid.onended=()=>{ pbar.style.width='100%'; unlock() }
+  } else {                                      // ── placeholder / YouTube fallback: 5s timer ──
+    ptime.textContent='0:00 / 0:05'
+    pscreen.innerHTML=v.id?`<iframe src="https://www.youtube.com/embed/${v.id}?rel=0&modestbranding=1&playsinline=1&autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`:`<div class="ph"><img src="assets/stand.webp" alt=""/><div class="pt">${APP.doctor} · Spine Lab</div><h3>${v.title}</h3><p>${v.script}</p></div>`
+    if(replay){pdone.disabled=false;pdone.textContent='Close'}
+    let p=0; ptimer=setInterval(()=>{ p+=0.1; const f=Math.min(1,p/5); pbar.style.width=f*100+'%'; ptime.textContent='0:0'+Math.min(5,Math.floor(p))+' / 0:05'; if(f>=1){clearInterval(ptimer); unlock()} },100)
+  }
 }
-pdone.onclick=()=>{ if(pdone.disabled)return; clearInterval(ptimer); pmask.classList.remove('show'); const wk=pmask.dataset.wk; if(!watched[wk]){watched[wk]=true; award(10,'Watched')} const cb=pcb; pcb=null; if(cb)cb() }
-pXb.onclick=()=>{ clearInterval(ptimer); pmask.classList.remove('show'); pcb=null }
+pdone.onclick=()=>{ if(pdone.disabled)return; const wk=pmask.dataset.wk; stopVid(); pmask.classList.remove('show'); if(!watched[wk]){watched[wk]=true; award(10,'Watched')} const cb=pcb; pcb=null; if(cb)cb() }
+pXb.onclick=()=>{ stopVid(); pmask.classList.remove('show'); pcb=null }
 
 function face(v){ const cols=['#34d399','#7dd37d','#fbbf24','#fb923c','#f87171','#ef4444'],c=cols[v/2],mouth=v<=2?'M8 16q4 3 8 0':v<=4?'M8 16h8':v<=6?'M8 17q4 -1 8 0':'M8 18q4 -4 8 0'
   return `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="${c}" stroke-width="1.8"/><circle cx="8.5" cy="10" r="1.1" fill="${c}"/><circle cx="15.5" cy="10" r="1.1" fill="${c}"/><path d="${mouth}" stroke="${c}" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>` }
