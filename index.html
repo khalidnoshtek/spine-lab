@@ -83,6 +83,26 @@
   .pplay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;width:66px;height:66px;border-radius:50%;border:1px solid rgba(95,208,255,.55);background:rgba(3,14,32,.5);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 10px 34px rgba(0,0,0,.45);animation:pulseSoft 2.4s ease-in-out infinite;transition:background .2s}
   .pplay svg{margin-left:3px} .pplay:hover{background:rgba(13,58,110,.72)}
   @keyframes pulseSoft{0%,100%{box-shadow:0 10px 34px rgba(0,0,0,.45),0 0 0 0 rgba(95,208,255,.4)}50%{box-shadow:0 10px 34px rgba(0,0,0,.45),0 0 0 10px rgba(95,208,255,0)}}
+
+  /* sciatic-nerve "current" visual */
+  .nerveviz{position:relative;display:flex;flex-direction:column;align-items:center;margin:0 0 4px;--heat:.12;--flow:2.8s}
+  .nerveviz svg{height:222px;width:auto;max-width:100%;overflow:visible;display:block}
+  .nerveviz .silimg{fill:url(#legfill);stroke:rgba(150,195,245,.34);stroke-width:1.2}
+  .nerveviz .vert{fill:#d8cbab;opacity:.62}
+  .nerveviz .nheat{fill:none;stroke:#ff4d4d;stroke-width:13;stroke-linecap:round;filter:url(#nglow);opacity:calc(var(--heat) * 1.6)}
+  .nerveviz .heat{fill:url(#heatg);opacity:var(--heat);animation:heatPulse 2.6s ease-in-out infinite}
+  .nerveviz .nhalo{fill:none;stroke:#ffce4a;stroke-width:8;stroke-linecap:round;opacity:.34;filter:url(#nglow)}
+  .nerveviz .nmid{fill:none;stroke:#ffd86a;stroke-width:4;stroke-linecap:round;opacity:.75}
+  .nerveviz .ncore{fill:none;stroke:#fff4d2;stroke-width:1.8;stroke-linecap:round;opacity:.95}
+  .nerveviz .branch{fill:none;stroke:#ffe08a;stroke-width:2;stroke-linecap:round;opacity:.7;filter:url(#nglow)}
+  .nerveviz .pulse{fill:none;stroke:#fff7df;stroke-width:3.2;stroke-linecap:round;stroke-dasharray:13 87;filter:url(#nglow);animation:nflow var(--flow) linear infinite}
+  .nerveviz .pulse.b{animation-delay:calc(var(--flow) / -2)}
+  .nerveviz .spark{fill:#fff;filter:url(#nglow);transform-box:fill-box;transform-origin:center;animation:sparkP 1.7s ease-in-out infinite}
+  .nervecap{font-size:11px;color:var(--mut);text-align:center;max-width:250px;margin-top:4px;display:flex;align-items:center;gap:6px;justify-content:center;line-height:1.4}
+  .nervecap i{flex:none;width:6px;height:6px;border-radius:50%;background:#ffd24a;box-shadow:0 0 8px #ffd24a;animation:sparkP 1.4s ease-in-out infinite}
+  @keyframes nflow{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+  @keyframes heatPulse{0%,100%{opacity:calc(var(--heat) * .65)}50%{opacity:var(--heat)}}
+  @keyframes sparkP{0%,100%{opacity:.45;transform:scale(.8)}50%{opacity:1;transform:scale(1.25)}}
   .pscreen .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px 22px}
   .pscreen .ph img{width:46px;opacity:.85;margin-bottom:13px;filter:drop-shadow(0 0 16px rgba(95,208,255,.5))}
   .pscreen .ph .pt{font-size:10px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase}
@@ -406,9 +426,39 @@ const STEPS=[
     canNext:()=>D.vas!=null,cta:'Continue',next:'sciatica'},
 
   {id:'sciatica',prog:.42,back:true,label:['Step 2 / 6','Sciatica'],video:'sciatica',
-    render:()=>`<div class="eyebrow">Step 2 · Leg pain / sciatica</div><h1 class="q">Pain or numbness down the leg?</h1><p class="sub">Pain travelling from the lower back into the leg can mean an irritated nerve.</p>${videoCard('sciatica')}
-      <div class="gatewrap"><div class="chips" id="sci">${[[0,'None','No leg pain, or only occasional'],[1,'Mild','Mild symptoms, not limiting'],[2,'Moderate','Pain/numbness in the leg, limits some activity'],[3,'Severe','Constant pain or numbness, affects walking']].map(([v,t,d])=>`<button class="chip ${D.sciatica===v?'on':''}" data-v="${v}"><div>${t}<b>${d}</b></div></button>`).join('')}</div></div>`,
-    init:()=>document.querySelectorAll('#sci .chip').forEach(b=>b.onclick=()=>{D.sciatica=+b.dataset.v;document.querySelectorAll('#sci .chip').forEach(x=>x.classList.toggle('on',x===b));setFoot()}),
+    render:()=>{
+      const ND='M88 56 C100 80 122 110 116 150 C110 200 124 250 120 300 C117 335 132 360 140 372'
+      const BR=['M137 368 C150 378 168 380 184 378','M140 372 C150 384 165 388 178 388','M134 369 C130 382 145 388 160 390']
+      const SIL='M68 54 C46 92 60 152 82 202 C94 252 82 304 96 344 L150 344 C150 300 156 252 150 204 C146 152 158 100 150 54 Z'
+      const FOOT='M96 344 L150 344 C162 350 196 360 199 373 C199 381 150 386 100 381 C89 379 88 360 96 344 Z'
+      return `<div class="nerveviz" id="nerveviz">
+        <svg viewBox="0 0 230 420" role="img" aria-label="The sciatic nerve carries pain from the lower spine down the leg to the foot">
+          <defs>
+            <linearGradient id="legfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb0ee" stop-opacity=".30"/><stop offset="1" stop-color="#2b5ca3" stop-opacity=".09"/></linearGradient>
+            <radialGradient id="heatg" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ff5a5a"/><stop offset="55%" stop-color="#ff5a5a" stop-opacity=".35"/><stop offset="100%" stop-color="#ff5a5a" stop-opacity="0"/></radialGradient>
+            <filter id="nglow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.4"/></filter>
+          </defs>
+          ${[0,1,2,3].map(i=>`<rect class="vert" x="${68-i}" y="${6+i*12}" width="30" height="9" rx="4"/>`).join('')}
+          <path class="silimg" d="${SIL}"/>
+          <path class="silimg" d="${FOOT}"/>
+          <ellipse class="heat" cx="102" cy="135" rx="60" ry="100"/>
+          <path class="nheat" d="${ND}"/>
+          <path class="nhalo" d="${ND}"/>
+          ${BR.map(d=>`<path class="branch" d="${d}"/>`).join('')}
+          <path class="nmid" d="${ND}"/><path class="ncore" d="${ND}"/>
+          <path class="pulse" pathLength="100" d="${ND}"/><path class="pulse b" pathLength="100" d="${ND}"/>
+          <circle class="spark" cx="90" cy="52" r="5"/>
+        </svg>
+        <div class="nervecap"><i></i>An irritated nerve at the spine sends pain down the leg — like a current</div>
+      </div>
+      <div class="eyebrow">Step 2 · Leg pain / sciatica</div><h1 class="q">Pain or numbness down the leg?</h1>${videoCard('sciatica')}
+      <div class="gatewrap"><div class="chips" id="sci">${[[0,'None','No leg pain, or only occasional'],[1,'Mild','Mild symptoms, not limiting'],[2,'Moderate','Pain/numbness in the leg, limits some activity'],[3,'Severe','Constant pain or numbness, affects walking']].map(([v,t,d])=>`<button class="chip ${D.sciatica===v?'on':''}" data-v="${v}"><div>${t}<b>${d}</b></div></button>`).join('')}</div></div>`},
+    init:()=>{
+      const heat={0:[.06,'3.2s'],1:[.17,'2.6s'],2:[.33,'2s'],3:[.53,'1.3s']}
+      const setN=s=>{ const nv=$('nerveviz'); if(!nv)return; const v=(s==null)?[.12,'2.8s']:heat[s]; nv.style.setProperty('--heat',v[0]); nv.style.setProperty('--flow',v[1]) }
+      setN(D.sciatica)
+      document.querySelectorAll('#sci .chip').forEach(b=>b.onclick=()=>{D.sciatica=+b.dataset.v;document.querySelectorAll('#sci .chip').forEach(x=>x.classList.toggle('on',x===b));setN(D.sciatica);setFoot()})
+    },
     canNext:()=>D.sciatica!=null,cta:'Continue',next:'odi'},
 
   {id:'odi',prog:.56,back:true,label:['Step 3 / 6','Function'],video:'odi',
