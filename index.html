@@ -156,6 +156,17 @@
   .habit .hb{flex:1}.habit .top{display:flex;justify-content:space-between;align-items:baseline}.habit .top b{font-size:15px}.habit .top .v{font-size:13px;color:var(--mut)}.habit .top .v b{color:#fff;font-size:16px}
   .habit .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.08);margin-top:8px;overflow:hidden}.habit .bar i{display:block;height:100%;border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
   .habit .goal{font-size:10.5px;color:var(--mut2);margin-top:5px;display:flex;align-items:center;gap:5px}
+  .habit .hedit{flex:none;align-self:center;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:rgba(10,28,56,.5);color:#bcd4f0;display:grid;place-items:center;cursor:pointer}
+  .habit.editing{border-color:rgba(95,208,255,.4)}
+  .hedit-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .hedit-row input{width:80px;background:rgba(10,26,50,.7);border:1px solid var(--cyan);border-radius:10px;padding:9px 10px;color:#fff;font-family:inherit;font-size:16px;font-weight:700;outline:none;text-align:center;-moz-appearance:textfield}
+  .hedit-row input::-webkit-outer-spin-button,.hedit-row input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .hedit-row .un{font-size:12px;color:var(--mut)}
+  .hedit-row .hsave{margin-left:auto;width:36px;height:36px;border-radius:10px;border:0;background:linear-gradient(120deg,var(--cyan),var(--indigo));color:#02121f;display:grid;place-items:center;cursor:pointer}
+  .hedit-row .hcancel{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--mut);display:grid;place-items:center;cursor:pointer}
+  .cardhd{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .cardhd .lnk{flex:none;display:flex;align-items:center;gap:5px;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.3px;color:var(--cyan);background:rgba(56,189,248,.1);border:1px solid rgba(95,208,255,.28);border-radius:99px;padding:5px 11px;cursor:pointer}
+  .manualnote{font-size:11px;color:var(--mut2);margin-top:10px;display:flex;align-items:center;gap:6px;justify-content:center}
 
   .hero{position:relative;display:flex;justify-content:center;margin:4px 0 0}
   .hero img{height:280px;width:auto;filter:drop-shadow(0 10px 40px rgba(0,40,90,.6));animation:float 7s ease-in-out infinite}
@@ -251,6 +262,8 @@ const IC={
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   water:'<path d="M12 3c4 5 6 8 6 11a6 6 0 11-12 0c0-3 2-6 6-11z"/>',
   bolt:'<path d="M13 3L5 13h6l-1 8 8-11h-6z"/>',
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>',
+  hand:'<path d="M6 11V5.5a1.5 1.5 0 013 0V10m0-4.5a1.5 1.5 0 013 0V10m0-3.5a1.5 1.5 0 013 0V11m0-1.5a1.5 1.5 0 013 0V15a6 6 0 01-6 6h-1a6 6 0 01-5.2-3L6.5 14.5a1.5 1.5 0 012.3-1.9L10 14"/>',
 }
 const icon=(n,s=20,cls='')=>`<svg class="ic ${cls}" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden>${IC[n]||''}</svg>`
 const LOGO={ // recognisable brand marks, themed in our cyan
@@ -305,6 +318,8 @@ const TASK_POOL=[
   {id:'learn',ic:'video',title:'Watch: protect your lower back',sub:'60-second lesson',pts:15},
 ]
 const TARGETS={sitting:7,walking:45,exercise:20,sleep:7.5}
+const HRANGE={sitting:{step:.5,max:18,dec:1},walking:{step:5,max:300,dec:0},exercise:{step:5,max:240,dec:0},sleep:{step:.5,max:14,dec:1}}
+let habitsEdit=false,habitFocus=null
 const POSE={sitting:'assets/sit.webp',walking:'assets/walk.webp',exercise:'assets/lift.webp',sleep:'assets/sleep.webp'}
 const HIC={sitting:'sit',walking:'walk',exercise:'exercise',sleep:'sleep'}
 
@@ -548,7 +563,7 @@ let tab='today'
 function appShell(inner,active){ return `<div class="hud"><div class="logo">${logoSvg()}BackSignal</div><div class="pts">${icon('spark',14)} ${S.points}</div></div>
   <div class="scroll app" id="scroll">${inner}</div>
   <div class="tabbar">${[['today','home','Today'],['plan','plan','Plan'],['rewards','rewards','Rewards'],['profile','profile','Profile']].map(([k,i,l])=>`<button data-tab="${k}" class="${active===k?'on':''}">${icon(i,21)}${l}</button>`).join('')}</div>` }
-function renderApp(t){ tab=t||tab
+function renderApp(t){ if(t&&t!==tab)habitsEdit=false; tab=t||tab
   root.innerHTML=appShell(tab==='today'?viewToday():tab==='plan'?viewPlan():tab==='rewards'?viewRewards():viewProfile(),tab)
   animKids(); root.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>renderApp(b.dataset.tab))
   if(tab==='today')initToday(); else if(tab==='plan')initPlan(); else if(tab==='rewards')initRewards(); else initProfile()
@@ -567,9 +582,16 @@ function viewToday(){ const p=S.profile,sv=severity(p.sssScore),t=S.today||{sitt
     <div class="scorecard"><div class="mini"><svg width="78" height="78" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12"/><circle cx="60" cy="60" r="50" fill="none" stroke="${sv.color}" stroke-width="12" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="${314-(p.sssScore/11)*314}"/></svg><div class="n" style="color:${sv.color}">${p.sssScore}</div></div><div class="info"><b>Spine Severity Score</b><div class="band" style="color:${sv.color}">${sv.band}</div><p>${sv.mgmt}</p></div></div>
     <div class="stats"><div class="stat"><div class="k">${icon('spark',13,'ci')} Points</div><div class="v" style="color:var(--cyan)">${S.points}</div></div><div class="stat"><div class="k">${icon('flame',13)} Streak</div><div class="v">${S.streak} <small>days</small></div></div></div>
     <div class="card"><h3>${icon('bolt',15,'ci')} Today’s tasks</h3><div id="tasks">${tasks.map(taskHTML).join('')}</div></div>
-    <div class="card"><h3>${icon('walk',15,'ci')} Today’s habits ${S.device?'· '+S.device:''}</h3>
-      ${['sitting','walking','exercise','sleep'].map(k=>{const v=t[k],st=habitStatus(k,v);return `<div class="habit"><div class="pic"><img src="${POSE[k]}" alt=""/></div><div class="hb"><div class="top"><b>${k[0].toUpperCase()+k.slice(1)}</b><span class="v"><b>${v}</b> ${units[k]}</span></div><div class="bar"><i style="width:${st.pct}%;background:${st.col}"></i></div><div class="goal">${st.ok?icon('check',12)+' Goal met':'Goal '+(k==='sitting'?'≤':'≥')+TARGETS[k]+' '+units[k]}</div></div></div>`}).join('')}
-      <button class="cta sec" id="sync" style="margin-top:12px">${S.lastSync===todayStr()?icon('check',16)+' Synced today · re-sync':icon('walk',16)+' Sync today from '+(S.device||'device')}</button></div>
+    <div class="card"><div class="cardhd"><h3>${icon('walk',15,'ci')} Today’s habits ${S.device&&!habitsEdit?'· '+S.device:''}</h3>${habitsEdit?`<span class="lnk" style="background:none;border:0;color:var(--mut2)">Manual entry</span>`:`<button class="lnk" id="habEdit">${icon('edit',13)} Edit</button>`}</div>
+      ${['sitting','walking','exercise','sleep'].map(k=>{const v=t[k],st=habitStatus(k,v),nm=k[0].toUpperCase()+k.slice(1),goal='Goal '+(k==='sitting'?'≤':'≥')+TARGETS[k]+' '+units[k]
+        return habitsEdit
+          ? `<div class="habit editing"><div class="pic"><img src="${POSE[k]}" alt=""/></div><div class="hb"><div class="top"><b>${nm}</b></div><div class="hedit-row"><input id="hin_${k}" type="number" inputmode="decimal" step="${HRANGE[k].step}" min="0" max="${HRANGE[k].max}" value="${v}"/><span class="un">${units[k]}</span></div><div class="goal">${goal}</div></div></div>`
+          : `<div class="habit"><div class="pic"><img src="${POSE[k]}" alt=""/></div><div class="hb"><div class="top"><b>${nm}</b><span class="v"><b>${v}</b> ${units[k]}</span></div><div class="bar"><i style="width:${st.pct}%;background:${st.col}"></i></div><div class="goal">${st.ok?icon('check',12)+' Goal met':goal}</div></div><button class="hedit" id="he_${k}" aria-label="Edit ${nm}">${icon('edit',15)}</button></div>`}).join('')}
+      ${habitsEdit
+        ? `<div style="display:flex;gap:9px;margin-top:12px"><button class="cta" id="habSave" style="flex:1">${icon('check',16)} Save habits</button><button class="cta sec" id="habCancel" style="margin-top:0;flex:none;width:auto;padding:0 18px">Cancel</button></div>`
+        : (S.device
+            ? `<button class="cta sec" id="sync" style="margin-top:12px">${S.lastSync===todayStr()?icon('check',16)+' Synced today · re-sync':icon('walk',16)+' Sync today from '+S.device}</button><div class="manualnote">${icon('hand',13)} Not picked up automatically? Tap Edit to log it yourself.</div>`
+            : `<button class="cta sec" id="habEnter" style="margin-top:12px">${icon('edit',16)} Enter today’s habits</button>`)}</div>
     ${insightsCard(hist)}`
 }
 function taskHTML(tk){ return `<div class="task" data-task="${tk.id}"><div class="ti">${icon(tk.ic,20)}</div><div class="tb"><b>${tk.title}</b><span>${tk.sub}</span></div><div class="pts">+${tk.pts}</div><button class="tc" aria-label="done">${icon('check',16)}</button></div>` }
@@ -585,6 +607,20 @@ function insightsCard(hist){ const metrics=[['walking','Walking','min',TARGETS.w
 function initToday(){
   // tasks: complete → confetti + slide out → new slides in
   root.querySelectorAll('.task').forEach(bindTask)
+  // manual habit entry
+  const enter=k=>{habitsEdit=true;habitFocus=k||null;renderApp('today')}
+  const he=$('habEdit'); if(he)he.onclick=()=>enter()
+  const hen=$('habEnter'); if(hen)hen.onclick=()=>enter()
+  ;['sitting','walking','exercise','sleep'].forEach(k=>{const b=$('he_'+k);if(b)b.onclick=()=>enter(k)})
+  const hca=$('habCancel'); if(hca)hca.onclick=()=>{habitsEdit=false;renderApp('today')}
+  const hsv=$('habSave'); if(hsv)hsv.onclick=()=>{
+    S.today=S.today||{}
+    ;['sitting','walking','exercise','sleep'].forEach(k=>{const el=$('hin_'+k); if(!el)return; let n=parseFloat(el.value); if(isNaN(n))return; n=Math.max(0,Math.min(HRANGE[k].max,n)); S.today[k]=HRANGE[k].dec?Math.round(n*10)/10:Math.round(n)})
+    const i=S.history.findIndex(h=>h.date===todayStr())
+    if(i>=0)S.history[i]={...S.history[i],...S.today,date:todayStr()}
+    else{S.history.push({date:todayStr(),...S.today}); if(S.history.length>14)S.history.shift()}
+    habitsEdit=false; save(); award(0,'Habits updated'); renderApp('today') }
+  if(habitsEdit){const f=$('hin_'+(habitFocus||'sitting')); if(f){f.focus();f.select&&f.select()} habitFocus=null}
   const sb=$('sync'); if(sb)sb.onclick=()=>{ const first=S.lastSync!==todayStr(),r=()=>Math.random()
     S.today={sitting:Math.round(6+r()*5),walking:Math.round(25+r()*45),exercise:Math.round(r()*35),sleep:+(5.5+r()*2.5).toFixed(1)}
     S.history.push({date:todayStr(),...S.today}); if(S.history.length>14)S.history.shift()
