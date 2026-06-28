@@ -441,7 +441,7 @@ const STEPS=[
 
   {id:'sciatica',prog:.42,back:true,label:['Step 2 / 6','Sciatica'],video:'sciatica',
     render:()=>{
-      const PD='M392 585 C362 620 346 665 344 725 C341 805 349 885 351 955 C353 1025 359 1095 364 1158'
+      const PD='M402 592 C446 634 462 692 462 752 C462 858 460 950 456 1040 C453 1110 449 1152 445 1184'
       return `<div class="nerveviz" id="nerveviz">
         <div class="painfig">
           <img src="assets/stand.webp" alt="Pain radiating from the lower back down the leg"/>
@@ -450,12 +450,12 @@ const STEPS=[
               <radialGradient id="heatg" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ff5a5a"/><stop offset="55%" stop-color="#ff5a5a" stop-opacity=".35"/><stop offset="100%" stop-color="#ff5a5a" stop-opacity="0"/></radialGradient>
               <filter id="nglow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="10"/></filter>
             </defs>
-            <ellipse class="heat" cx="384" cy="635" rx="118" ry="118"/>
+            <ellipse class="heat" cx="426" cy="645" rx="112" ry="110"/>
             <path class="nheat" d="${PD}"/>
             <path class="nhalo" d="${PD}"/>
             <path class="nmid" d="${PD}"/><path class="ncore" d="${PD}"/>
             <path class="pulse" pathLength="100" d="${PD}"/><path class="pulse b" pathLength="100" d="${PD}"/>
-            <circle class="spark" cx="392" cy="586" r="13"/>
+            <circle class="spark" cx="404" cy="594" r="13"/>
           </svg>
         </div>
         <div class="nervecap"><i></i>An irritated nerve in the lower back sends pain down the leg — like a current</div>
