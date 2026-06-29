@@ -621,8 +621,9 @@ function viewToday(){ const p=S.profile,sv=severity(p.sssScore),units={sitting:'
         ? `<div style="display:flex;gap:9px;margin-top:12px"><button class="cta" id="habSave" style="flex:1">${icon('check',16)} Save entry</button><button class="cta sec" id="habCancel" style="margin-top:0;flex:none;width:auto;padding:0 18px">Cancel</button></div>`
         : (hasEntry
             ? (S.device&&selDate===todayStr()?`<button class="cta sec" id="sync" style="margin-top:12px">${S.lastSync===todayStr()?icon('check',16)+' Synced today · re-sync':icon('walk',16)+' Sync from '+S.device}</button>`:'')
-            : `<button class="cta sec" id="habAdd" style="margin-top:12px">${icon('edit',16)} Add ${selDate===todayStr()?'today’s':'this'} entry</button>`)}</div>
-    ${insightsCard()}`
+            : `<button class="cta sec" id="habAdd" style="margin-top:12px">${icon('edit',16)} Add ${selDate===todayStr()?'today’s':'this'} entry</button>`)}</div>`
+  // NOTE: weekly insights (insightsCard) are intentionally NOT shown to the patient here —
+  // surfacing trends biases behaviour. Data is collected silently; insights belong in the clinician/diagnosis view.
 }
 function insightsCard(){ const days=last7()
   const metrics=[['walking','Walking','min',TARGETS.walking,false],['sitting','Sitting','h',TARGETS.sitting,true],['sleep','Sleep','h',TARGETS.sleep,false],['exercise','Exercise','min',TARGETS.exercise,false]]
