@@ -197,6 +197,27 @@
   .spark{display:flex;align-items:flex-end;gap:5px;height:40px}.spark i{flex:1;border-radius:4px 4px 2px 2px;transition:height .5s}
   .insight{display:flex;gap:9px;align-items:flex-start;font-size:12px;color:#c2d6ef;line-height:1.45;margin-top:11px;background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.16);border-radius:12px;padding:11px 12px}
   .insight .ci{color:var(--cyan);flex:none;margin-top:1px}
+  .insbadge{font-size:10px;font-weight:700;color:var(--cyan);background:rgba(56,189,248,.1);border:1px solid rgba(95,208,255,.28);padding:4px 9px;border-radius:99px;white-space:nowrap}
+  .inssum{font-size:13px;color:var(--mut);margin-top:12px}.inssum b{color:#fff;font-size:18px}.inssum span{font-size:11px;color:var(--mut2)}
+  .trend{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:99px;margin-left:6px}
+  .trend.up{color:var(--green);background:rgba(52,211,153,.13)}.trend.down{color:var(--red);background:rgba(248,113,113,.13)}.trend.flat{color:var(--mut2);background:rgba(255,255,255,.06)}
+  .calnav{display:flex;align-items:center;gap:8px;font-size:12px;color:#fff;font-weight:600}
+  .calnav button{width:26px;height:26px;border-radius:8px;border:1px solid var(--line);background:rgba(10,28,56,.5);color:#bcd4f0;cursor:pointer;font-size:17px;line-height:1;display:grid;place-items:center;padding:0}
+  .calnav span{min-width:104px;text-align:center}
+  .cal-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:14px}
+  .cal-wk span{text-align:center;font-size:9.5px;letter-spacing:.5px;color:var(--mut2)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
+  .cal-d{position:relative;aspect-ratio:1;border:0;background:rgba(255,255,255,.03);border-radius:10px;color:#cdddf2;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;display:grid;place-items:center;transition:background .15s}
+  .cal-d.empty{background:none;pointer-events:none}
+  .cal-d:not(.fut):hover{background:rgba(255,255,255,.08)}
+  .cal-d.has{color:#fff}
+  .cal-d.has i{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--cyan)}
+  .cal-d.today{box-shadow:inset 0 0 0 1.5px rgba(95,208,255,.55)}
+  .cal-d.sel{background:linear-gradient(120deg,var(--cyan),var(--indigo));color:#02121f}
+  .cal-d.sel i{background:#02121f}
+  .cal-d.fut{opacity:.3;cursor:default}
+  .emptyday{display:flex;flex-direction:column;align-items:center;gap:9px;color:var(--mut2);text-align:center;padding:20px 10px 14px}
+  .emptyday p{font-size:12.5px}
 
   /* tasks */
   .task{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px 14px;margin-top:10px;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s,border-color .2s;overflow:hidden}
@@ -216,7 +237,7 @@
   .reward .rc:disabled{background:rgba(255,255,255,.08);color:var(--mut2);cursor:not-allowed}
   .reward.got{opacity:.7}.reward.got .rc{background:rgba(52,211,153,.18);color:var(--green)}
 
-  .tabbar{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(4,12,28,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  .tabbar{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(3,1fr);background:rgba(4,12,28,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
   .tabbar button{background:0;border:0;color:var(--mut2);font-family:inherit;font-size:10px;font-weight:600;padding:10px 0 11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:color .2s}
   .tabbar button.on{color:var(--cyan)}
 
@@ -327,10 +348,15 @@ const HIC={sitting:'sit',walking:'walk',exercise:'exercise',sleep:'sleep'}
 
 /* ════════════ state ════════════ */
 const KEY='backsignal_v2'
-const todayStr=()=>new Date().toISOString().slice(0,10)
+const dstr=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+const todayStr=()=>dstr(new Date())
+const addDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return d}
+function seedEntries(){ const e={}; for(let i=6;i>=0;i--){ e[dstr(addDays(-i))]={sitting:Math.round(6+Math.random()*5),walking:Math.round(22+Math.random()*40),exercise:Math.round(Math.random()*30),sleep:+(5.5+Math.random()*2.5).toFixed(1)} } return e }
+function shiftMonth(delta){ const [y,m]=calMonth.split('-').map(Number),d=new Date(y,m-1+delta,1); calMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0') }
+let selDate=todayStr(), calMonth=todayStr().slice(0,7)
 let S=load()
-function load(){ try{const s=JSON.parse(localStorage.getItem(KEY)); if(s)return s}catch(e){}
-  return {onboarded:false,points:0,streak:0,lastSync:null,device:null,redeemed:[],profile:null,today:null,history:[],planDone:[],tasks:null,tasksDone:0} }
+function load(){ try{const s=JSON.parse(localStorage.getItem(KEY)); if(s){ if(!s.entries)s.entries=seedEntries(); return s }}catch(e){}
+  return {onboarded:false,points:0,streak:0,lastSync:null,device:null,redeemed:[],profile:null,today:null,entries:{},history:[],planDone:[],tasks:null,tasksDone:0} }
 function save(){ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} }
 let D={name:'',age:35,sex:'',occupation:'',height:170,weight:72,vas:null,sciatica:null,odi:{Walking:0,Sitting:0,Standing:0,Sleep:0,'Daily activities':0},chronicity:null,redflags:[],habits:{sitting:8,walking:30,exercise:2,sleep:7}}
 let watched={}
@@ -518,7 +544,7 @@ const STEPS=[
     init:()=>{ const t=sssTotal(),sv=severity(t),ring=document.getElementById('rring'),num=document.getElementById('rnum')
       requestAnimationFrame(()=>{ring.style.transition='stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)';ring.style.strokeDashoffset=326-(t/11)*326})
       let n=0;const iv=setInterval(()=>{n++;if(n>=t){n=t;clearInterval(iv)}num.textContent=n},90) },
-    cta:'See my next steps →',next:'__finish'},
+    cta:'Go to my dashboard →',next:'__finish'},
 ]
 
 /* ════════════ flow engine ════════════ */
@@ -541,7 +567,6 @@ function renderStep(){ const s=STEPS[idx]; root.innerHTML=shell(s.render()); $('
   if(gated&&!s._auto){s._auto=true;setTimeout(()=>openVideo(s.video,s.id,()=>renderStep()),360)}
 }
 function goTo(id){const i=STEPS.findIndex(s=>s.id===id);if(i>=0){idx=i;renderStep()}}
-function seedHistory(){ const h=[]; for(let i=6;i>=0;i--){ h.push({date:i,walking:Math.round(22+Math.random()*40),sitting:Math.round(6+Math.random()*5),sleep:+(5.5+Math.random()*2.5).toFixed(1),exercise:Math.round(Math.random()*30)}) } return h }
 function pickTasks(){ // adapt to score/habits
   const pool=[...TASK_POOL]; const pri=[]
   const t=S.today||{}
@@ -552,16 +577,17 @@ function pickTasks(){ // adapt to score/habits
 function finishOnboarding(){ const t=sssTotal(),sv=severity(t)
   S.profile={...D,sssScore:t,band:sv.band,completedAt:todayStr()}; S.onboarded=true
   S.today={sitting:D.habits.sitting,walking:D.habits.walking,exercise:D.habits.exercise*10,sleep:D.habits.sleep}
-  S.history=seedHistory(); S.lastSync=todayStr(); S.streak=Math.max(1,S.streak); S.tasks=pickTasks()
+  S.entries=seedEntries(); S.entries[todayStr()]={...S.today}; selDate=todayStr(); calMonth=todayStr().slice(0,7)
+  S.lastSync=todayStr(); S.streak=Math.max(1,S.streak); S.tasks=pickTasks()
   const firstTime=!S._awarded; S._awarded=true; save()
-  if(firstTime)award(200,'Assessment complete',[innerWidth/2,innerHeight*0.4]); renderApp('plan')
+  if(firstTime)award(200,'Assessment complete',[innerWidth/2,innerHeight*0.4]); renderApp('today')
 }
 
 /* ════════════ MAIN APP ════════════ */
 let tab='today'
 function appShell(inner,active){ return `<div class="hud"><div class="logo">${logoSvg()}BackSignal</div><div class="pts">${icon('spark',14)} ${S.points}</div></div>
   <div class="scroll app" id="scroll">${inner}</div>
-  <div class="tabbar">${[['today','home','Today'],['plan','plan','Plan'],['rewards','rewards','Rewards'],['profile','profile','Profile']].map(([k,i,l])=>`<button data-tab="${k}" class="${active===k?'on':''}">${icon(i,21)}${l}</button>`).join('')}</div>` }
+  <div class="tabbar">${[['today','home','Home'],['rewards','rewards','Rewards'],['profile','profile','Profile']].map(([k,i,l])=>`<button data-tab="${k}" class="${active===k?'on':''}">${icon(i,21)}${l}</button>`).join('')}</div>` }
 function renderApp(t){ if(t&&t!==tab)habitsEdit=false; tab=t||tab
   root.innerHTML=appShell(tab==='today'?viewToday():tab==='plan'?viewPlan():tab==='rewards'?viewRewards():viewProfile(),tab)
   animKids(); root.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>renderApp(b.dataset.tab))
@@ -573,64 +599,71 @@ function habitStatus(k,v){ const tgt=TARGETS[k]
   if(k==='sitting')return{ok:v<=tgt,pct:Math.min(100,(tgt/Math.max(v,1))*100),col:v<=tgt?'var(--green)':v<=tgt+2?'var(--amber)':'var(--red)'}
   const pct=Math.min(100,v/tgt*100);return{ok:v>=tgt,pct,col:v>=tgt?'var(--green)':pct>=55?'var(--amber)':'var(--red)'} }
 
-function viewToday(){ const p=S.profile,sv=severity(p.sssScore),t=S.today||{sitting:8,walking:30,exercise:15,sleep:7},units={sitting:'h',walking:'min',exercise:'min',sleep:'h'}
-  S.tasks=S.tasks||pickTasks()
-  const tasks=S.tasks.map(id=>TASK_POOL.find(x=>x.id===id)).filter(Boolean)
-  const hist=S.history.length?S.history:seedHistory()
+function dateTitle(ds){ if(ds===todayStr())return 'Today'; const d=new Date(ds+'T00:00:00'); return d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}) }
+function last7(){ const a=[]; for(let i=6;i>=0;i--){const ds=dstr(addDays(-i)); a.push({ds,...(S.entries[ds]||{})})} return a }
+function calCells(){ const base=new Date(calMonth+'-01T00:00:00'),y=base.getFullYear(),m=base.getMonth(),days=new Date(y,m+1,0).getDate(),off=new Date(y,m,1).getDay(),cells=[]; for(let i=0;i<off;i++)cells.push(null); for(let d=1;d<=days;d++)cells.push(new Date(y,m,d)); return cells }
+function viewToday(){ const p=S.profile,sv=severity(p.sssScore),units={sitting:'h',walking:'min',exercise:'min',sleep:'h'}
+  const t=S.entries[selDate]||{}, hasEntry=!!S.entries[selDate], ed=habitsEdit
+  const monthLbl=new Date(calMonth+'-01T00:00:00').toLocaleDateString(undefined,{month:'long',year:'numeric'})
   return `<div class="greet">${greetWord()}<b>${firstName()}, protect your lower back</b></div>
     <div class="scorecard"><div class="mini"><svg width="78" height="78" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12"/><circle cx="60" cy="60" r="50" fill="none" stroke="${sv.color}" stroke-width="12" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="${314-(p.sssScore/11)*314}"/></svg><div class="n" style="color:${sv.color}">${p.sssScore}</div></div><div class="info"><b>Spine Severity Score</b><div class="band" style="color:${sv.color}">${sv.band}</div><p>${sv.mgmt}</p></div></div>
-    <div class="stats"><div class="stat"><div class="k">${icon('spark',13,'ci')} Points</div><div class="v" style="color:var(--cyan)">${S.points}</div></div><div class="stat"><div class="k">${icon('flame',13)} Streak</div><div class="v">${S.streak} <small>days</small></div></div></div>
-    <div class="card"><h3>${icon('bolt',15,'ci')} Today’s tasks</h3><div id="tasks">${tasks.map(taskHTML).join('')}</div></div>
-    <div class="card"><div class="cardhd"><h3>${icon('walk',15,'ci')} Today’s habits ${S.device&&!habitsEdit?'· '+S.device:''}</h3>${habitsEdit?`<span class="lnk" style="background:none;border:0;color:var(--mut2)">Manual entry</span>`:`<button class="lnk" id="habEdit">${icon('edit',13)} Edit</button>`}</div>
-      ${['sitting','walking','exercise','sleep'].map(k=>{const v=t[k],st=habitStatus(k,v),nm=k[0].toUpperCase()+k.slice(1),goal='Goal '+(k==='sitting'?'≤':'≥')+TARGETS[k]+' '+units[k]
-        return habitsEdit
-          ? `<div class="habit editing"><div class="pic"><img src="${POSE[k]}" alt=""/></div><div class="hb"><div class="top"><b>${nm}</b></div><div class="hedit-row"><input id="hin_${k}" type="number" inputmode="decimal" step="${HRANGE[k].step}" min="0" max="${HRANGE[k].max}" value="${v}"/><span class="un">${units[k]}</span></div><div class="goal">${goal}</div></div></div>`
-          : `<div class="habit"><div class="pic"><img src="${POSE[k]}" alt=""/></div><div class="hb"><div class="top"><b>${nm}</b><span class="v"><b>${v}</b> ${units[k]}</span></div><div class="bar"><i style="width:${st.pct}%;background:${st.col}"></i></div><div class="goal">${st.ok?icon('check',12)+' Goal met':goal}</div></div><button class="hedit" id="he_${k}" aria-label="Edit ${nm}">${icon('edit',15)}</button></div>`}).join('')}
-      ${habitsEdit
-        ? `<div style="display:flex;gap:9px;margin-top:12px"><button class="cta" id="habSave" style="flex:1">${icon('check',16)} Save habits</button><button class="cta sec" id="habCancel" style="margin-top:0;flex:none;width:auto;padding:0 18px">Cancel</button></div>`
-        : (S.device
-            ? `<button class="cta sec" id="sync" style="margin-top:12px">${S.lastSync===todayStr()?icon('check',16)+' Synced today · re-sync':icon('walk',16)+' Sync today from '+S.device}</button><div class="manualnote">${icon('hand',13)} Not picked up automatically? Tap Edit to log it yourself.</div>`
-            : `<button class="cta sec" id="habEnter" style="margin-top:12px">${icon('edit',16)} Enter today’s habits</button>`)}</div>
-    ${insightsCard(hist)}`
+    <div class="card"><div class="cardhd"><h3>${icon('book',15,'ci')} Spine diary</h3><div class="calnav"><button id="calPrev" aria-label="Previous month">‹</button><span>${monthLbl}</span><button id="calNext" aria-label="Next month">›</button></div></div>
+      <div class="cal-wk">${['S','M','T','W','T','F','S'].map(d=>`<span>${d}</span>`).join('')}</div>
+      <div class="cal-grid">${calCells().map(c=>{ if(!c)return '<div class="cal-d empty"></div>'; const ds=dstr(c),fut=ds>todayStr(),has=!!S.entries[ds]; return `<button class="cal-d${ds===selDate?' sel':''}${ds===todayStr()?' today':''}${has?' has':''}${fut?' fut':''}" ${fut?'disabled':''} data-d="${ds}">${c.getDate()}${has?'<i></i>':''}</button>` }).join('')}</div></div>
+    <div class="card"><div class="cardhd"><h3>${icon('walk',15,'ci')} ${dateTitle(selDate)}${S.device&&selDate===todayStr()&&!ed?' · '+S.device:''}</h3>${ed?`<span class="lnk" style="background:none;border:0;color:var(--mut2)">Entry</span>`:(hasEntry?`<button class="lnk" id="habEdit">${icon('edit',13)} Edit</button>`:'')}</div>
+      ${(hasEntry||ed)
+        ? ['sitting','walking','exercise','sleep'].map(k=>{const nm=k[0].toUpperCase()+k.slice(1),goal='Goal '+(k==='sitting'?'≤':'≥')+TARGETS[k]+' '+units[k]
+            if(ed)return `<div class="habit editing"><div class="pic"><img src="${POSE[k]}" alt=""/></div><div class="hb"><div class="top"><b>${nm}</b></div><div class="hedit-row"><input id="hin_${k}" type="number" inputmode="decimal" step="${HRANGE[k].step}" min="0" max="${HRANGE[k].max}" value="${t[k]??''}"/><span class="un">${units[k]}</span></div><div class="goal">${goal}</div></div></div>`
+            const st=habitStatus(k,t[k]||0)
+            return `<div class="habit"><div class="pic"><img src="${POSE[k]}" alt=""/></div><div class="hb"><div class="top"><b>${nm}</b><span class="v"><b>${t[k]}</b> ${units[k]}</span></div><div class="bar"><i style="width:${st.pct}%;background:${st.col}"></i></div><div class="goal">${st.ok?icon('check',12)+' Goal met':goal}</div></div><button class="hedit" id="he_${k}" aria-label="Edit ${nm}">${icon('edit',15)}</button></div>`}).join('')
+        : `<div class="emptyday">${icon('edit',24,'ci')}<p>No entry for ${dateTitle(selDate)} yet.</p></div>`}
+      ${ed
+        ? `<div style="display:flex;gap:9px;margin-top:12px"><button class="cta" id="habSave" style="flex:1">${icon('check',16)} Save entry</button><button class="cta sec" id="habCancel" style="margin-top:0;flex:none;width:auto;padding:0 18px">Cancel</button></div>`
+        : (hasEntry
+            ? (S.device&&selDate===todayStr()?`<button class="cta sec" id="sync" style="margin-top:12px">${S.lastSync===todayStr()?icon('check',16)+' Synced today · re-sync':icon('walk',16)+' Sync from '+S.device}</button>`:'')
+            : `<button class="cta sec" id="habAdd" style="margin-top:12px">${icon('edit',16)} Add ${selDate===todayStr()?'today’s':'this'} entry</button>`)}</div>
+    ${insightsCard()}`
 }
-function taskHTML(tk){ return `<div class="task" data-task="${tk.id}"><div class="ti">${icon(tk.ic,20)}</div><div class="tb"><b>${tk.title}</b><span>${tk.sub}</span></div><div class="pts">+${tk.pts}</div><button class="tc" aria-label="done">${icon('check',16)}</button></div>` }
-function insightsCard(hist){ const metrics=[['walking','Walking','min',TARGETS.walking,false],['sitting','Sitting','h',TARGETS.sitting,true],['sleep','Sleep','h',TARGETS.sleep,false]]
-  const avg=k=>Math.round(hist.reduce((a,b)=>a+(b[k]||0),0)/hist.length*10)/10
-  const wMet=hist.filter(d=>(d.walking||0)>=TARGETS.walking).length
-  const insight=`You hit your walking goal <b>${wMet} of 7</b> days. ${avg('sitting')>TARGETS.sitting?'Sitting is your biggest risk — averaging '+avg('sitting')+'h/day.':'Nice — your sitting is in a healthy range.'}`
-  return `<div class="card ins"><h3>${icon('bolt',15,'ci')} This week’s insights</h3>
-    ${metrics.map(([k,t,u,tgt,low])=>{const a=avg(k);const max=Math.max(tgt*1.4,...hist.map(d=>d[k]||0))
-      return `<div class="insrow"><div class="t"><span>${t}</span><span>avg <b>${a}${u}</b> · goal ${low?'≤':'≥'}${tgt}${u}</span></div><div class="spark">${hist.map(d=>{const v=d[k]||0,met=low?v<=tgt:v>=tgt;return `<i style="height:${Math.max(8,Math.min(100,v/max*100))}%;background:${met?'var(--green)':'var(--amber)'}"></i>`}).join('')}</div></div>`}).join('')}
-    <div class="insight">${icon('spark',15,'ci')}<div>${insight}</div></div></div>`
+function insightsCard(){ const days=last7()
+  const metrics=[['walking','Walking','min',TARGETS.walking,false],['sitting','Sitting','h',TARGETS.sitting,true],['sleep','Sleep','h',TARGETS.sleep,false],['exercise','Exercise','min',TARGETS.exercise,false]]
+  const vals=k=>days.map(d=>d[k]).filter(v=>v!=null&&v!=='')
+  const avg=k=>{const a=vals(k);return a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10:0}
+  const goalDays=(k,tgt,low)=>days.filter(d=>{const v=d[k];return v!=null&&(low?v<=tgt:v>=tgt)}).length
+  const trend=(k,low)=>{const a=vals(k);if(a.length<2)return'flat';const h=Math.ceil(a.length/2),rec=a.slice(-h).reduce((x,y)=>x+y,0)/h,old=a.slice(0,a.length-h).reduce((x,y)=>x+y,0)/Math.max(1,a.length-h);return(low?rec<old*0.97:rec>old*1.03)?'up':(low?rec>old*1.03:rec<old*0.97)?'down':'flat'}
+  const logged=days.filter(d=>metrics.some(([k])=>d[k]!=null)).length
+  const onTrack=days.filter(d=>metrics.filter(([k,,,tgt,low])=>{const v=d[k];return v!=null&&(low?v<=tgt:v>=tgt)}).length>=3).length
+  const headline=avg('sitting')>TARGETS.sitting?`Sitting is your biggest risk — averaging <b>${avg('sitting')}h/day</b> against a ≤${TARGETS.sitting}h goal. Stand and move every 30 minutes.`
+    :avg('walking')<TARGETS.walking?`Build your walking up — averaging <b>${avg('walking')} min/day</b> (goal ${TARGETS.walking}). Every extra walk eases lumbar stiffness.`
+    :`Strong week — your lifestyle is actively protecting your spine. Keep the streak going.`
+  return `<div class="card ins"><div class="cardhd"><h3>${icon('bolt',15,'ci')} This week’s insights</h3><span class="insbadge">${logged}/7 days logged</span></div>
+    <div class="inssum"><b>${onTrack}</b> of 7 days on track <span>· 3+ habit goals met</span></div>
+    ${metrics.map(([k,lbl,u,tgt,low])=>{const a=avg(k),max=Math.max(tgt*1.4,...days.map(d=>d[k]||0)),tr=trend(k,low),gd=goalDays(k,tgt,low)
+      return `<div class="insrow"><div class="t"><span>${lbl}<em class="trend ${tr}">${tr==='up'?'▲ improving':tr==='down'?'▼ slipping':'→ steady'}</em></span><span>avg <b>${a}${u}</b> · ${gd}/7 on goal</span></div><div class="spark">${days.map(d=>{const v=d[k],met=v!=null&&(low?v<=tgt:v>=tgt),h=v==null?0:Math.max(8,Math.min(100,v/max*100));return `<i style="height:${h}%;background:${v==null?'rgba(255,255,255,.09)':met?'var(--green)':'var(--amber)'}"></i>`}).join('')}</div></div>`}).join('')}
+    <div class="insight">${icon('spark',15,'ci')}<div>${headline}</div></div></div>`
 }
 function initToday(){
-  // tasks: complete → confetti + slide out → new slides in
-  root.querySelectorAll('.task').forEach(bindTask)
-  // manual habit entry
+  // calendar: pick a date / change month
+  root.querySelectorAll('.cal-d[data-d]').forEach(b=>{ if(b.disabled)return; b.onclick=()=>{ selDate=b.dataset.d; habitsEdit=false; renderApp('today') } })
+  const cp=$('calPrev'); if(cp)cp.onclick=()=>{shiftMonth(-1);renderApp('today')}
+  const cn=$('calNext'); if(cn)cn.onclick=()=>{shiftMonth(1);renderApp('today')}
+  // habit entry for the selected date
   const enter=k=>{habitsEdit=true;habitFocus=k||null;renderApp('today')}
   const he=$('habEdit'); if(he)he.onclick=()=>enter()
-  const hen=$('habEnter'); if(hen)hen.onclick=()=>enter()
+  const ha=$('habAdd'); if(ha)ha.onclick=()=>enter()
   ;['sitting','walking','exercise','sleep'].forEach(k=>{const b=$('he_'+k);if(b)b.onclick=()=>enter(k)})
   const hca=$('habCancel'); if(hca)hca.onclick=()=>{habitsEdit=false;renderApp('today')}
   const hsv=$('habSave'); if(hsv)hsv.onclick=()=>{
-    S.today=S.today||{}
-    ;['sitting','walking','exercise','sleep'].forEach(k=>{const el=$('hin_'+k); if(!el)return; let n=parseFloat(el.value); if(isNaN(n))return; n=Math.max(0,Math.min(HRANGE[k].max,n)); S.today[k]=HRANGE[k].dec?Math.round(n*10)/10:Math.round(n)})
-    const i=S.history.findIndex(h=>h.date===todayStr())
-    if(i>=0)S.history[i]={...S.history[i],...S.today,date:todayStr()}
-    else{S.history.push({date:todayStr(),...S.today}); if(S.history.length>14)S.history.shift()}
-    habitsEdit=false; save(); award(0,'Habits updated'); renderApp('today') }
+    const e=S.entries[selDate]?{...S.entries[selDate]}:{}
+    ;['sitting','walking','exercise','sleep'].forEach(k=>{const el=$('hin_'+k); if(!el)return; let n=parseFloat(el.value); if(isNaN(n))n=0; n=Math.max(0,Math.min(HRANGE[k].max,n)); e[k]=HRANGE[k].dec?Math.round(n*10)/10:Math.round(n)})
+    S.entries[selDate]=e; if(selDate===todayStr())S.today=e
+    habitsEdit=false; save(); award(0,'Entry saved'); renderApp('today') }
   if(habitsEdit){const f=$('hin_'+(habitFocus||'sitting')); if(f){f.focus();f.select&&f.select()} habitFocus=null}
   const sb=$('sync'); if(sb)sb.onclick=()=>{ const first=S.lastSync!==todayStr(),r=()=>Math.random()
-    S.today={sitting:Math.round(6+r()*5),walking:Math.round(25+r()*45),exercise:Math.round(r()*35),sleep:+(5.5+r()*2.5).toFixed(1)}
-    S.history.push({date:todayStr(),...S.today}); if(S.history.length>14)S.history.shift()
-    if(first){S.streak+=1;let g=20;['sitting','walking','exercise','sleep'].forEach(k=>{if(habitStatus(k,S.today[k]).ok)g+=25});S.lastSync=todayStr();S.points+=g;save();award(g,'Daily sync · '+S.streak+'-day streak',[innerWidth/2,innerHeight*0.5])}else save()
+    const e={sitting:Math.round(6+r()*5),walking:Math.round(25+r()*45),exercise:Math.round(r()*35),sleep:+(5.5+r()*2.5).toFixed(1)}
+    S.entries[todayStr()]=e; S.today=e
+    if(first){S.streak+=1;let g=20;['sitting','walking','exercise','sleep'].forEach(k=>{if(habitStatus(k,e[k]).ok)g+=25});S.lastSync=todayStr();S.points+=g;save();award(g,'Daily sync · '+S.streak+'-day streak',[innerWidth/2,innerHeight*0.5])}else save()
     renderApp('today') }
 }
-function bindTask(node){ node.querySelector('.tc').onclick=btnHandler(node) }
-function btnHandler(node){ return ()=>{ if(node.classList.contains('done'))return; const id=node.dataset.task,tk=TASK_POOL.find(x=>x.id===id),r=node.querySelector('.tc').getBoundingClientRect()
-  node.classList.add('done'); confetti(r.left+r.width/2,r.top+r.height/2); award(tk.pts,'Task done'); S.tasksDone=(S.tasksDone||0)+1
-  const used=new Set(S.tasks); const next=TASK_POOL.find(x=>!used.has(x.id))||TASK_POOL[0]; S.tasks=S.tasks.map(x=>x===id?next.id:x); save()
-  setTimeout(()=>{node.classList.add('out');setTimeout(()=>{const nw=document.createElement('div');nw.innerHTML=taskHTML(next).trim();const nn=nw.firstChild;nn.classList.add('in');node.replaceWith(nn);bindTask(nn)},420)},520) } }
 
 /* PLAN */
 function planData(){ const p=S.profile,sv=severity(p.sssScore),t=S.today||{}
