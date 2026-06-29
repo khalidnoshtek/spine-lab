@@ -218,6 +218,16 @@
   .cal-d.fut{opacity:.3;cursor:default}
   .emptyday{display:flex;flex-direction:column;align-items:center;gap:9px;color:var(--mut2);text-align:center;padding:20px 10px 14px}
   .emptyday p{font-size:12.5px}
+  .sacard{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+  .sa-nums{display:flex;align-items:center;justify-content:space-between;gap:6px}
+  .sa-n{text-align:center;flex:1}.sa-n span{display:block;font-size:9.5px;letter-spacing:1.2px;color:var(--mut2);text-transform:uppercase}.sa-n b{font-size:42px;font-weight:800;line-height:1.05;color:#fff}
+  .sa-vs{flex:none;text-align:center;display:flex;flex-direction:column;align-items:center}.sa-vs em{font-style:normal;font-size:10px;font-weight:700;margin-top:2px;color:var(--mut);white-space:nowrap}
+  .sa-track{position:relative;height:8px;border-radius:99px;background:rgba(255,255,255,.08);margin:22px 7px 0}
+  .sa-track .sa-fill{position:absolute;top:0;bottom:0;border-radius:99px}
+  .sa-dot{position:absolute;top:50%;width:15px;height:15px;border-radius:50%;transform:translate(-50%,-50%);border:2px solid #02060f}
+  .sa-dot.you{background:#fff}
+  .sa-badge{display:inline-block;margin-top:20px;font-size:12px;font-weight:700;padding:6px 14px;border-radius:99px}
+  .sa-note{font-size:12.5px;color:#c2d6ef;line-height:1.5;margin-top:11px;text-align:center}
 
   /* tasks */
   .task{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px 14px;margin-top:10px;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s,border-color .2s;overflow:hidden}
@@ -375,6 +385,14 @@ function severity(t){
   if(t>=7)return{band:'MODERATE–SEVERE',color:'var(--orange)',hex:'#fb923c',desc:'Moderate-to-severe pain and disability; marked limitation.',mgmt:'Spine specialist consultation and advanced care.'}
   if(t>=4)return{band:'MILD–MODERATE',color:'var(--amber)',hex:'#fbbf24',desc:'Mild-to-moderate pain with some functional limitation.',mgmt:'Physiotherapy, lifestyle correction and evaluation.'}
   return{band:'LOW',color:'var(--green)',hex:'#34d399',desc:'Minimal pain and low impact on your day.',mgmt:'Education, posture correction and regular exercise.'}
+}
+// Age-specific spine pattern — PLACEHOLDER mapping; final formula to be set/validated by Dr Sharma.
+function spineAgeData(){ const t=sssTotal(),age=Math.max(16,+D.age||35),yrs=Math.round((t-3)*1.7),spine=Math.max(16,age+yrs),sv=severity(t)
+  const pat = t<=3?{label:'Excellent spine protection',note:'Your symptoms and lifestyle suggest a spine working younger than your age. Keep moving and watch your sitting to hold this.'}
+    : t<=6?{label:'Early wear pattern',note:'A few habits and symptoms are ageing your spine faster than your years. Small daily corrections can reverse this.'}
+    : t<=9?{label:'High degeneration pattern',note:'Your symptoms and lifestyle resemble a noticeably older spine. Early action can slow — and often reverse — this.'}
+    : {label:'Advanced degeneration pattern',note:'Your pattern suggests significant strain on the lumbar spine. Prompt specialist input is important.'}
+  return {age,spine,yrs,sv,pat}
 }
 
 /* points + toast */
@@ -544,6 +562,27 @@ const STEPS=[
     init:()=>{ const t=sssTotal(),sv=severity(t),ring=document.getElementById('rring'),num=document.getElementById('rnum')
       requestAnimationFrame(()=>{ring.style.transition='stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)';ring.style.strokeDashoffset=326-(t/11)*326})
       let n=0;const iv=setInterval(()=>{n++;if(n>=t){n=t;clearInterval(iv)}num.textContent=n},90) },
+    cta:'See your spine age →',next:'spineage'},
+
+  {id:'spineage',prog:1,back:true,label:['Spine age',''],
+    render:()=>{const {age,spine,yrs,sv,pat}=spineAgeData(),hex=sv.hex
+      const lo=Math.min(age,spine)-6,hi=Math.max(age,spine)+6,rng=Math.max(1,hi-lo)
+      const youP=((age-lo)/rng)*100, spP=((spine-lo)/rng)*100, fL=Math.min(youP,spP), fW=Math.abs(spP-youP)
+      const delta=yrs>0?`${yrs} yrs older`:yrs<0?`${-yrs} yrs younger`:'on par'
+      return `<div class="eyebrow" style="text-align:center">Age-specific spine pattern</div><h1 class="q" style="text-align:center">Your spine age</h1>
+      <p class="sub" style="text-align:center">What your symptoms and lifestyle say about your lumbar spine — not just a number.</p>
+      <div class="sacard">
+        <div class="sa-nums"><div class="sa-n"><span>Your age</span><b>${age}</b></div>
+          <div class="sa-vs" style="color:${hex}">${icon('arrow',20)}<em>${delta}</em></div>
+          <div class="sa-n spine"><span>Spine age</span><b style="color:${hex}">${spine}</b></div></div>
+        <div class="sa-track"><i class="sa-fill" style="left:${fL}%;width:${fW}%;background:linear-gradient(90deg,#5fd0ff88,${hex})"></i><span class="sa-dot you" style="left:${youP}%"></span><span class="sa-dot sp" style="left:${spP}%;background:${hex};box-shadow:0 0 10px ${hex}"></span></div>
+        <div style="text-align:center"><span class="sa-badge" style="color:${hex};background:${hex}1f;border:1px solid ${hex}55">${pat.label}</span></div>
+        <p class="sa-note">${pat.note}</p></div>
+      <div class="card"><h3>${icon('stetho',15,'ci')} Recommended next step</h3><p class="sub" style="margin-top:8px;color:#dbe8fa">${sv.mgmt}</p>
+        <button class="cta" id="consult" style="margin-top:13px">${icon('stetho',16)} Talk to a spine consultant</button>
+        <div class="trust" style="border:0;margin-top:12px"><span class="by">${icon('shield',13)} Reviewed by ${APP.doctor}</span> · Spine Severity System</div></div>
+      <div class="disc">Lower-back screening & decision support only — not a diagnosis.</div>`},
+    init:()=>{ const c=$('consult'); if(c)c.onclick=()=>window.open(APP.links.website,'_blank','noopener') },
     cta:'Go to my dashboard →',next:'__finish'},
 ]
 
