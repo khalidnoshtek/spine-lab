@@ -72,8 +72,9 @@
   .vcard .meta b{display:block;font-size:13px;font-weight:600} .vcard .meta span{font-size:11px;color:var(--mut2)}
   .vcard .yt{margin-left:auto;font-size:9px;letter-spacing:1px;color:var(--mut2);text-transform:uppercase}
   .vcard.done{border-color:rgba(52,211,153,.4)} .vcard.done .yt{color:var(--green)}
-  .vchip{display:inline-flex;align-items:center;gap:6px;margin-top:14px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.32);color:var(--green);font-family:inherit;font-size:11.5px;font-weight:600;padding:6px 11px;border-radius:99px;cursor:pointer}
-  .vchip .rp{color:var(--cyan);display:inline-flex;align-items:center;gap:4px;padding-left:7px;margin-left:1px;border-left:1px solid rgba(255,255,255,.12)}
+  .vfab{position:absolute;right:16px;bottom:96px;z-index:30;display:inline-flex;align-items:center;gap:6px;background:rgba(8,28,56,.82);border:1px solid rgba(95,208,255,.42);color:var(--cyan);font-family:inherit;font-size:12px;font-weight:700;padding:9px 14px;border-radius:99px;cursor:pointer;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.45);animation:fabIn .35s cubic-bezier(.2,.8,.2,1) both}
+  .vfab:active{transform:scale(.95)}
+  @keyframes fabIn{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:1;transform:none}}
 
   .pmask{position:fixed;inset:0;z-index:60;background:rgba(2,8,20,.85);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:18px}
   .pmask.show{display:flex}
@@ -361,8 +362,8 @@ pXb.innerHTML=icon('x',14)
 let ptimer=null,pcb=null,pvid=null
 const mmss=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 function stopVid(){ if(pvid){try{pvid.pause()}catch(e){} pvid.removeAttribute('src'); pvid=null} clearInterval(ptimer); pscreen.innerHTML='' }
-function videoCard(key,id){ const v=APP.videos[key],done=watched[id||key]
-  if(done) return `<button class="vchip" data-vid="${key}" data-vk="${id||key}">${icon('check',13)} Watched<span class="rp">${icon('play',10,'f')} Replay</span></button>`
+function videoCard(key,id){ const v=APP.videos[key]
+  if(watched[id||key]) return ''   // watched → no inline card; a floating Replay button is shown instead
   return `<div class="vcard" data-vid="${key}" data-vk="${id||key}"><div class="thumb">${icon('play',16,'f')}</div><div class="meta"><b>${v.title}</b><span>Why we ask · 0:05</span></div><div class="yt">Watch</div></div>` }
 function openVideo(key,wkey,onDone){
   const v=APP.videos[key]; pcb=onDone||null; stopVid(); pbar.style.width='0%'; pdone.disabled=true; pdone.textContent='Watch to continue'
@@ -536,6 +537,7 @@ function renderStep(){ const s=STEPS[idx]; root.innerHTML=shell(s.render()); $('
   if(gated&&gw){gw.classList.add('gated');const lm=document.createElement('div');lm.className='lockmsg';lm.innerHTML=icon('play',15)+' Watch the 5-second clip to unlock this step';gw.parentNode.insertBefore(lm,gw)}
   $('scroll').querySelectorAll('[data-vid]').forEach(el=>el.onclick=()=>openVideo(el.dataset.vid,el.dataset.vk,()=>renderStep()))
   s.init&&s.init(); setFoot()
+  if(s.video&&watched[s.id]){ root.insertAdjacentHTML('beforeend',`<button class="vfab" id="vfab" aria-label="Replay clip">${icon('play',14,'f')} Replay clip</button>`); $('vfab').onclick=()=>openVideo(s.video,s.id,()=>renderStep()) }
   if(gated&&!s._auto){s._auto=true;setTimeout(()=>openVideo(s.video,s.id,()=>renderStep()),360)}
 }
 function goTo(id){const i=STEPS.findIndex(s=>s.id===id);if(i>=0){idx=i;renderStep()}}
