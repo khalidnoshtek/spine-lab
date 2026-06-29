@@ -14,6 +14,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<!-- Indic scripts for multilingual (broad set). TODO native: bundle locally instead of CDN. -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+Telugu:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Noto+Sans+Gujarati:wght@400;600;700&family=Noto+Sans+Kannada:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;600;700&family=Noto+Sans+Gurmukhi:wght@400;600;700&family=Noto+Sans+Oriya:wght@400;600;700&display=swap" rel="stylesheet" />
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   :root{
@@ -228,6 +230,12 @@
   .sa-dot.you{background:#fff}
   .sa-badge{display:inline-block;margin-top:20px;font-size:12px;font-weight:700;padding:6px 14px;border-radius:99px}
   .sa-note{font-size:12.5px;color:#c2d6ef;line-height:1.5;margin-top:11px;text-align:center}
+  .langsel{display:flex;flex-wrap:wrap;gap:7px}
+  .langchip{border:1px solid var(--line);background:rgba(12,28,54,.6);color:#cfe0f5;border-radius:99px;padding:7px 13px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+  .langchip.on{background:rgba(56,189,248,.15);border-color:var(--cyan);color:var(--cyan)}
+  .langdraft{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--gold);background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.25);border-radius:9px;padding:6px 10px;margin-top:9px}
+  .langpick{margin-bottom:4px}.langpick .langsel{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .langpick .langchip{flex:none}
 
   /* tasks */
   .task{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px 14px;margin-top:10px;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s,border-color .2s;overflow:hidden}
@@ -366,7 +374,7 @@ function shiftMonth(delta){ const [y,m]=calMonth.split('-').map(Number),d=new Da
 let selDate=todayStr(), calMonth=todayStr().slice(0,7)
 let S=load()
 function load(){ try{const s=JSON.parse(localStorage.getItem(KEY)); if(s){ if(!s.entries)s.entries=seedEntries(); return s }}catch(e){}
-  return {onboarded:false,points:0,streak:0,lastSync:null,device:null,redeemed:[],profile:null,today:null,entries:{},history:[],planDone:[],tasks:null,tasksDone:0} }
+  return {onboarded:false,points:0,streak:0,lastSync:null,device:null,redeemed:[],profile:null,today:null,entries:{},history:[],planDone:[],tasks:null,tasksDone:0,lang:'en'} }
 function save(){ try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} }
 let D={name:'',age:35,sex:'',occupation:'',height:170,weight:72,vas:null,sciatica:null,odi:{Walking:0,Sitting:0,Standing:0,Sleep:0,'Daily activities':0},chronicity:null,redflags:[],habits:{sitting:8,walking:30,exercise:2,sleep:7}}
 let watched={}
@@ -442,7 +450,8 @@ function face(v){ const cols=['#34d399','#7dd37d','#fbbf24','#fb923c','#f87171',
 /* ════════════ ONBOARDING STEPS ════════════ */
 const STEPS=[
   {id:'intro',prog:0,label:['BackSignal',''],video:'intro',
-    render:()=>`<div class="hero"><img src="assets/stand.webp" alt="Lower spine"/><div class="lumglow"></div></div>
+    render:()=>`<div class="langpick">${langSelector()}</div>
+      <div class="hero"><img src="assets/stand.webp" alt="Lower spine"/><div class="lumglow"></div></div>
       <div class="eyebrow">${APP.doctor} · Spine Severity System</div><h1 class="q">Your personal <span class="lumbar">lower-back</span> score</h1>
       <p class="sub">A doctor-verified, 6-step lumbar screening — then a daily tracker that earns you rewards.</p>${videoCard('intro')}
       <div class="trust" style="border:0;padding-top:14px;margin-top:14px;text-align:left"><span class="by">Built on the Spine Severity System (SSS)</span> by ${APP.doctor}, Dept. of Spine Surgery. <a href="${APP.links.website}" target="_blank" rel="noopener">Learn more →</a></div>`,
@@ -590,6 +599,48 @@ const STEPS=[
 let idx=0
 const root=document.getElementById('app')
 const $=id=>document.getElementById(id)
+
+/* ════════════ i18n (multilingual) ════════════ */
+const LANGS=[
+  {code:'en',name:'English',noto:''},{code:'hi',name:'हिन्दी',noto:'Noto Sans Devanagari'},
+  {code:'bn',name:'বাংলা',noto:'Noto Sans Bengali'},{code:'te',name:'తెలుగు',noto:'Noto Sans Telugu'},
+  {code:'mr',name:'मराठी',noto:'Noto Sans Devanagari'},{code:'ta',name:'தமிழ்',noto:'Noto Sans Tamil'},
+  {code:'gu',name:'ગુજરાતી',noto:'Noto Sans Gujarati'},{code:'kn',name:'ಕನ್ನಡ',noto:'Noto Sans Kannada'},
+  {code:'ml',name:'മലയാളം',noto:'Noto Sans Malayalam'},{code:'pa',name:'ਪੰਜਾਬੀ',noto:'Noto Sans Gurmukhi'},
+  {code:'or',name:'ଓଡ଼ିଆ',noto:'Noto Sans Oriya'},
+]
+// DRAFT Hindi — machine-assisted, NOT clinically reviewed. Other languages fall back to English until reviewed copy is supplied.
+const TR={ hi:{
+  '__draft':'अनुवाद ड्राफ़्ट — अभी चिकित्सकीय समीक्षा बाकी',
+  'Doctor-verified':'डॉक्टर-सत्यापित','Begin assessment':'मूल्यांकन शुरू करें','Continue':'जारी रखें','Cancel':'रद्द करें',
+  'Home':'होम','Rewards':'रिवॉर्ड','Profile':'प्रोफ़ाइल','Edit':'बदलें','Save entry':'प्रविष्टि सहेजें','Replay clip':'क्लिप फिर देखें','Watch to continue':'जारी रखने के लिए देखें',
+  'Your personal':'आपका निजी','lower-back':'लोअर-बैक','score':'स्कोर',
+  'A doctor-verified, 6-step lumbar screening — then a daily tracker that earns you rewards.':'एक डॉक्टर-सत्यापित, 6-चरण लंबर जांच — फिर एक दैनिक ट्रैकर जो आपको रिवॉर्ड दिलाता है।',
+  'Connect a health device':'हेल्थ डिवाइस कनेक्ट करें','About you':'आपके बारे में',
+  'Back pain':'पीठ दर्द','Leg pain & sciatica':'पैर दर्द और साइटिका','Daily function':'दैनिक कार्य','Body load':'शारीरिक भार','Pain duration':'दर्द की अवधि','Safety check':'सुरक्षा जांच',
+  'Pain or numbness down the leg?':'पैर में दर्द या सुन्नपन?','How much does it limit you?':'यह आपको कितना सीमित करता है?','Mechanical load on your spine':'आपकी रीढ़ पर यांत्रिक भार','How long has it lasted?':'यह कब से है?','Any of these apply?':'क्या इनमें से कोई लागू है?',
+  'Pick the face that matches your pain right now.':'वह चेहरा चुनें जो अभी आपके दर्द से मेल खाता है।','Rate each activity — your disability index updates live.':'हर गतिविधि को आँकें — आपका डिसेबिलिटी इंडेक्स लाइव अपडेट होता है।',
+  'None':'कोई नहीं','Mild':'हल्का','Moderate':'मध्यम','Severe':'गंभीर','Normal':'सामान्य','Acute':'तीव्र','Subacute':'उप-तीव्र','Chronic':'दीर्घकालिक',
+  'Pain':'दर्द','Sciatica':'साइटिका','Function':'कार्य','Duration':'अवधि','Safety':'सुरक्षा',
+  'Spine Severity Score':'स्पाइन सीवियरिटी स्कोर','out of 11':'11 में से','Score breakdown':'स्कोर विवरण',
+  'See your spine age →':'अपनी रीढ़ की आयु देखें →','Go to my dashboard →':'मेरे डैशबोर्ड पर जाएँ →',
+  'Your spine age':'आपकी रीढ़ की आयु','Age-specific spine pattern':'आयु-विशिष्ट रीढ़ पैटर्न','Your age':'आपकी आयु','Spine age':'रीढ़ की आयु',
+  'Excellent spine protection':'उत्कृष्ट रीढ़ सुरक्षा','Early wear pattern':'प्रारंभिक घिसाव पैटर्न','High degeneration pattern':'उच्च क्षरण पैटर्न','Advanced degeneration pattern':'उन्नत क्षरण पैटर्न',
+  'Recommended next step':'अनुशंसित अगला कदम','Talk to a spine consultant':'रीढ़ विशेषज्ञ से बात करें',
+  'Spine diary':'रीढ़ डायरी','Today':'आज','Goal met':'लक्ष्य पूरा','This week’s insights':'इस सप्ताह की जानकारी',
+  'Good morning':'सुप्रभात','Good afternoon':'नमस्कार','Good evening':'शुभ संध्या',
+  'Sitting':'बैठना','Walking':'चलना','Exercise':'व्यायाम','Sleep':'नींद',
+  'Language':'भाषा','Retake assessment':'मूल्यांकन दोबारा करें','Reset app':'ऐप रीसेट करें','Health device':'हेल्थ डिवाइस',
+} }
+function langData(){ return LANGS.find(x=>x.code===(S.lang||'en'))||LANGS[0] }
+function langSelector(){ const cur=S.lang||'en'
+  return `<div class="langsel">${LANGS.map(l=>`<button class="langchip ${cur===l.code?'on':''}" data-lang="${l.code}"${l.noto?` style="font-family:'${l.noto}',sans-serif"`:''}>${l.name}</button>`).join('')}</div>${cur!=='en'?`<div class="langdraft">${icon('shield',12)} ${(TR[cur]&&TR[cur]['__draft'])||'Draft translation — not yet clinically reviewed'}</div>`:''}` }
+function selectLang(code){ S.lang=code; save(); S.onboarded?renderApp(tab):renderStep() }
+function applyLang(){ root.querySelectorAll('.langchip').forEach(b=>b.onclick=()=>selectLang(b.dataset.lang))
+  const L=langData(); root.style.fontFamily = L.code==='en'?'' : `'${L.noto}','Sora',system-ui,sans-serif`
+  const dict=TR[L.code]; if(!dict)return
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT); const ns=[]; let n; while(n=w.nextNode())ns.push(n)
+  ns.forEach(t=>{ const k=t.nodeValue.trim(); if(k&&dict[k])t.nodeValue=t.nodeValue.replace(k,dict[k]) }) }
 function animKids(){ [...$('scroll').children].forEach((c,i)=>{c.style.animationDelay=(i*0.05)+'s'}) }
 function logoSvg(){ return `<svg width="22" height="22" viewBox="0 0 24 24"><g fill="#6fe0ff"><rect x="9" y="3" width="6" height="2.4" rx="1.2"/><rect x="8.4" y="6.4" width="7.2" height="2.6" rx="1.3"/><rect x="8.1" y="9.8" width="7.8" height="2.7" rx="1.35"/><rect x="8.1" y="13.2" width="7.8" height="2.7" rx="1.35"/></g><g fill="#ffb020"><rect x="9" y="16.8" width="6" height="2.5" rx="1.25"/><rect x="9" y="20" width="6" height="2.4" rx="1.2"/></g></svg>` }
 function shell(inner){ return `<div class="hud"><button class="bk" id="bk">${icon('arrow',16)}</button><div class="logo">${logoSvg()}BackSignal</div><div class="cert">${icon('shield',13)} Doctor-verified</div></div><div class="prog"><i id="prog"></i></div><div class="steplbl"><span id="lblL"></span><span id="lblR"></span></div><div class="scroll" id="scroll">${inner}</div><div class="foot" id="foot"></div>` }
@@ -604,6 +655,7 @@ function renderStep(){ const s=STEPS[idx]; root.innerHTML=shell(s.render()); $('
   s.init&&s.init(); setFoot()
   if(s.video&&watched[s.id]){ root.insertAdjacentHTML('beforeend',`<button class="vfab" id="vfab" aria-label="Replay clip">${icon('play',14,'f')} Replay clip</button>`); $('vfab').onclick=()=>openVideo(s.video,s.id,()=>renderStep()) }
   if(gated&&!s._auto){s._auto=true;setTimeout(()=>openVideo(s.video,s.id,()=>renderStep()),360)}
+  applyLang()
 }
 function goTo(id){const i=STEPS.findIndex(s=>s.id===id);if(i>=0){idx=i;renderStep()}}
 function pickTasks(){ // adapt to score/habits
@@ -631,6 +683,7 @@ function renderApp(t){ if(t&&t!==tab)habitsEdit=false; tab=t||tab
   root.innerHTML=appShell(tab==='today'?viewToday():tab==='plan'?viewPlan():tab==='rewards'?viewRewards():viewProfile(),tab)
   animKids(); root.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>renderApp(b.dataset.tab))
   if(tab==='today')initToday(); else if(tab==='plan')initPlan(); else if(tab==='rewards')initRewards(); else initProfile()
+  applyLang()
 }
 function firstName(){ return (S.profile.name||'').split(' ')[0]||'there' }
 function greetWord(){const h=new Date().getHours();return h<12?'Good morning':h<18?'Good afternoon':'Good evening'}
@@ -743,6 +796,7 @@ function viewProfile(){ const p=S.profile,sv=severity(p.sssScore)
     <div class="b"><span class="n">Tasks completed</span><span class="v">${S.tasksDone||0}</span></div>
     <div class="b"><span class="n">Assessed</span><span class="v">${p.completedAt}</span></div></div></div>
     <div class="trust" style="border:0"><span class="by">${icon('shield',13)} Verified by ${APP.doctor}</span><br/>Dept. of Spine Surgery — Spine Severity System (SSS)<br/><a href="${APP.links.website}" target="_blank" rel="noopener">Website</a> · <a href="${APP.links.youtube}" target="_blank" rel="noopener">Videos</a> · <a href="${APP.links.research}" target="_blank" rel="noopener">Research</a></div>
+    <div class="card"><h3>${icon('book',15,'ci')} Language · भाषा</h3><div style="margin-top:11px">${langSelector()}</div></div>
     <button class="cta sec" id="retake" style="margin-top:18px">Retake assessment</button><button class="cta sec" id="reset">Reset app</button>
     <div class="disc">Screening & decision support only — not a diagnosis or a substitute for clinical judgment.</div>` }
 function initProfile(){ $('retake').onclick=()=>{ D={name:S.profile.name,age:S.profile.age,sex:S.profile.sex,occupation:S.profile.occupation,height:S.profile.height,weight:S.profile.weight,vas:null,sciatica:null,odi:{Walking:0,Sitting:0,Standing:0,Sleep:0,'Daily activities':0},chronicity:null,redflags:[],habits:{sitting:8,walking:30,exercise:2,sleep:7}}; watched={}; STEPS.forEach(s=>s._auto=false); idx=STEPS.findIndex(s=>s.id==='vas'); renderStep() }
