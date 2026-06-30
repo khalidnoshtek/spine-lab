@@ -529,14 +529,14 @@ const STEPS=[
       document.querySelectorAll('#sex .chip').forEach(b=>b.onclick=()=>{D.sex=b.dataset.s;document.querySelectorAll('#sex .chip').forEach(x=>x.classList.toggle('on',x===b))}) },
     cta:'Continue',next:'vas'},
 
-  {id:'vas',prog:.3,back:true,label:['Step 1 / 6','Pain'],video:'vas',
+  {id:'vas',prog:.24,back:true,label:['Step 1 / 6','Pain'],video:'vas',
     render:()=>`<div class="eyebrow">Back pain</div><h1 class="q">How bad is your <span class="lumbar">lower back</span> today?</h1><p class="sub">Pick the face that matches your pain right now.</p>${videoCard('vas')}
       <div class="gatewrap"><div class="faces" id="faces">${[0,2,4,6,8,10].map(v=>`<div class="face ${D.vas===v?'on':''}" data-v="${v}">${face(v)}<span>${v}</span></div>`).join('')}</div><div class="vaslbl" id="vaslbl"></div></div>`,
     init:()=>{ const lbl=document.getElementById('vaslbl'),upd=()=>lbl.innerHTML=D.vas==null?'':(D.vas<=3?'<span style="color:var(--green)">Mild (0–3)</span>':D.vas<=6?'<span style="color:var(--amber)">Moderate (4–6)</span>':'<span style="color:var(--red)">Severe (7–10)</span>')
       document.querySelectorAll('#faces .face').forEach(f=>f.onclick=()=>{D.vas=+f.dataset.v;document.querySelectorAll('#faces .face').forEach(x=>x.classList.toggle('on',x===f));upd();setFoot()}); upd() },
     canNext:()=>D.vas!=null,cta:'Continue',next:'sciatica'},
 
-  {id:'sciatica',prog:.42,back:true,label:['Step 2 / 6','Sciatica'],video:'sciatica',
+  {id:'sciatica',prog:.34,back:true,label:['Step 2 / 6','Sciatica'],video:'sciatica',
     render:()=>{
       const PD='M402 592 C446 634 462 692 462 752 C462 858 460 950 456 1040 C453 1110 449 1152 445 1184'
       return `<div class="nerveviz" id="nerveviz">
@@ -567,7 +567,7 @@ const STEPS=[
     },
     canNext:()=>D.sciatica!=null,cta:'Continue',next:'odi'},
 
-  {id:'odi',prog:.56,back:true,label:['Step 3 / 6','Function'],video:'odi',
+  {id:'odi',prog:.44,back:true,label:['Step 3 / 6','Function'],video:'odi',
     render:()=>`<div class="eyebrow">Daily function</div><h1 class="q">How much does it limit you?</h1><p class="sub">Rate each activity — your disability index updates live.</p>${videoCard('odi')}
       <div class="gatewrap"><div class="odiring"><svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="11"/><circle id="oring" cx="60" cy="60" r="50" fill="none" stroke="var(--cyan)" stroke-width="11" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"/></svg><div class="n"><b id="onum" style="color:var(--cyan)">0</b><span>/ 10 index</span></div></div>
       <div class="odi" id="odi">${Object.keys(D.odi).map(act=>{const k={'Walking':'walk','Sitting':'sit','Standing':'walk','Sleep':'sleep','Daily activities':'exercise'}[act]
@@ -577,7 +577,7 @@ const STEPS=[
       document.querySelectorAll('#odi .seg').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{D.odi[seg.dataset.act]=+b.dataset.v;seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));upd()})); upd() },
     cta:'Continue',next:'bmi'},
 
-  {id:'bmi',prog:.66,back:true,label:['Step 4 / 6','Body load'],video:'bmi',
+  {id:'bmi',prog:.52,back:true,label:['Step 4 / 6','Body load'],video:'bmi',
     render:()=>{const b=bmiOf(D.weight,D.height),sc=bmiScore(),cat=b<25?'Healthy range':b<30?'Overweight':'Obese',col=sc===0?'var(--green)':sc===1?'var(--amber)':'var(--red)'
       return `<div class="eyebrow">Body load</div><h1 class="q">Mechanical load on your spine</h1><p class="sub">From your height & weight. Higher BMI loads the lumbar discs.</p>${videoCard('bmi')}
       <div class="gatewrap"><div class="ring" style="margin-top:16px"><svg width="146" height="146" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/><circle cx="60" cy="60" r="52" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round" stroke-dasharray="326" stroke-dashoffset="${326-Math.min(1,b/40)*326}"/></svg><div class="num"><b style="color:${col};font-size:36px">${b.toFixed(1)}</b><span>BMI</span><small style="color:${col};font-size:11px">${cat}</small></div></div>
@@ -585,19 +585,19 @@ const STEPS=[
     init:()=>{ const e=document.getElementById('wt2'); if(e)e.oninput=()=>{D.weight=+e.value||D.weight;renderStep()} },
     cta:'Continue',next:'chronicity'},
 
-  {id:'chronicity',prog:.8,back:true,label:['Step 5 / 6','Duration'],video:'chronicity',
+  {id:'chronicity',prog:.6,back:true,label:['Step 5 / 6','Duration'],video:'chronicity',
     render:()=>`<div class="eyebrow">Pain duration</div><h1 class="q">How long has it lasted?</h1><p class="sub">Duration changes how lower-back pain is managed.</p>${videoCard('chronicity')}
       <div class="gatewrap"><div class="chips" id="chr">${[['acute','Acute','Less than 3 weeks'],['subacute','Subacute','3 to 6 weeks'],['chronic','Chronic','More than 6 weeks']].map(([v,t,d])=>`<button class="chip ${D.chronicity===v?'on':''}" data-v="${v}"><span class="ci">${icon('clock',18)}</span><div>${t}<b>${d}</b></div></button>`).join('')}</div></div>`,
     init:()=>document.querySelectorAll('#chr .chip').forEach(b=>b.onclick=()=>{D.chronicity=b.dataset.v;document.querySelectorAll('#chr .chip').forEach(x=>x.classList.toggle('on',x===b));setFoot()}),
     canNext:()=>D.chronicity!=null,cta:'Continue',next:'redflag'},
 
-  {id:'redflag',prog:.9,back:true,label:['Step 6 / 6','Safety'],video:'redflag',
+  {id:'redflag',prog:.68,back:true,label:['Step 6 / 6','Safety'],video:'redflag',
     render:()=>`<div class="eyebrow">Safety check</div><h1 class="q">Any of these apply?</h1><p class="sub">Tick anything you currently have. If none, leave them unchecked.</p>${videoCard('redflag')}
       <div class="gatewrap"><div class="flags" id="flags">${['History of cancer','Unexplained weight loss','Fever / infection','Recent major trauma','Loss of bladder or bowel control','Numbness around the saddle area','Progressive leg weakness'].map(f=>`<div class="flag ${D.redflags.includes(f)?'on':''}" data-f="${f}"><span class="bx">${D.redflags.includes(f)?icon('check',13):''}</span>${f}</div>`).join('')}</div><div class="warn">${icon('shield',16)}<div>Any red flag can signal serious pathology and means urgent medical review.</div></div></div>`,
     init:()=>document.querySelectorAll('#flags .flag').forEach(el=>el.onclick=()=>{const f=el.dataset.f,i=D.redflags.indexOf(f);if(i>=0)D.redflags.splice(i,1);else D.redflags.push(f);el.classList.toggle('on');el.querySelector('.bx').innerHTML=D.redflags.includes(f)?icon('check',13):''}),
     cta:'Get my Spine Score',next:'result'},
 
-  {id:'result',prog:1,label:['Your result',''],result:true,
+  {id:'result',prog:.79,label:['Your result',''],result:true,
     render:()=>{const t=sssTotal(),sv=severity(t),rows=[['Back pain (VAS)',`${D.vas??'–'}/10 · ${vasPoints()}pt`],['Sciatica',`${D.sciatica??'–'}/3`],['Disability (ODI)',`${odiTotal()}/10 · ${odiPoints()}pt`],['Body load (BMI)',`${bmiOf(D.weight,D.height).toFixed(1)} · ${bmiScore()}pt`],['Chronicity',`${D.chronicity||'–'} · ${chronScore()}pt`],['Red flags',hasRedFlag()?'Present':'None']]
       return `<div class="hero" style="margin-top:0"><img src="assets/stand.webp" alt="" style="height:180px"/><div class="lumglow" style="background:radial-gradient(circle,${sv.hex},transparent 62%);opacity:.7"></div></div>
       <div class="eyebrow" style="text-align:center">Spine Severity Score</div>
@@ -611,9 +611,9 @@ const STEPS=[
     init:()=>{ const t=sssTotal(),sv=severity(t),ring=document.getElementById('rring'),num=document.getElementById('rnum')
       requestAnimationFrame(()=>{ring.style.transition='stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)';ring.style.strokeDashoffset=326-(t/11)*326})
       let n=0;const iv=setInterval(()=>{n++;if(n>=t){n=t;clearInterval(iv)}num.textContent=n},90) },
-    cta:'See your dashboard →',next:'homeview'},
+    cta:'Continue',next:'homeview'},
 
-  {id:'homeview',prog:1,back:true,label:['Your dashboard',''],
+  {id:'homeview',prog:.9,back:true,label:['Your dashboard',''],
     render:()=>{const t=sssTotal(),sv=severity(t),units={sitting:'h',walking:'min',exercise:'min',sleep:'h'}
       const hb={sitting:D.habits.sitting,walking:D.habits.walking,exercise:(D.habits.exercise||0)*10,sleep:D.habits.sleep}
       const monthLbl=new Date(todayStr().slice(0,7)+'-01T00:00:00').toLocaleDateString(undefined,{month:'long',year:'numeric'})
@@ -625,7 +625,7 @@ const STEPS=[
       <div class="card"><div class="cardhd"><h3>${icon('walk',15,'ci')} Today</h3></div>
         ${['sitting','walking','exercise','sleep'].map(k=>{const v=hb[k],st=habitStatus(k,v),nm=k[0].toUpperCase()+k.slice(1),goal='Goal <span>'+(k==='sitting'?'≤':'≥')+TARGETS[k]+' '+units[k]+'</span>'
           return `<div class="habit"><div class="pic"><img src="${POSE[k]}" alt=""/></div><div class="hb"><div class="top"><b>${nm}</b><span class="v"><b>${v}</b> ${units[k]}</span></div><div class="bar"><i style="width:${st.pct}%;background:${st.col}"></i></div><div class="goal">${st.ok?icon('check',12)+' Goal met':goal}</div></div></div>`}).join('')}</div>`},
-    cta:'See your spine age →',next:'spineage'},
+    cta:'Continue',next:'spineage'},
 
   {id:'spineage',prog:1,back:true,label:['Spine age',''],
     render:()=>{const {age,spine,yrs,sv,pat}=spineAgeData(),hex=sv.hex,pm=pickPMSG(),act=['low','moderate'].includes(pm.band)?'Start SSS Protocol Stage 2 →':'Consult the Spine Care Team →'
