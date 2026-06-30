@@ -477,6 +477,10 @@ function pmAge(a){a=+a||35;return a<=30?'20-30':a<=45?'31-45':'46-60';}
 function pmFuture(){const h=(typeof D!=='undefined'&&D.habits)||{};let m=0;if((h.sitting!=null?h.sitting:8)<=TARGETS.sitting)m++;if((h.walking!=null?h.walking:30)>=TARGETS.walking)m++;if(((h.exercise||0)*10)>=TARGETS.exercise)m++;if((h.sleep!=null?h.sleep:7)>=TARGETS.sleep)m++;return m>=3?'good':'high';}
 const PMBI={low:0,moderate:1,'moderate-severe':2,high:3,severe:4},PMAI={'20-30':0,'31-45':1,'46-60':2};
 function pickPMSG(){const t=sssTotal(),age=pmAge(D.age),ti=t<=3?0:t<=6?1:t<=9?2.5:4,ai=PMAI[age],fut=pmFuture();let best=PMSG[0],bs=1e9;for(const m of PMSG){const sc=Math.abs(PMBI[m.band]-ti)*10+Math.abs(PMAI[m.age]-ai)*3+((m.future==='any'||m.future===fut)?0:1);if(sc<bs){bs=sc;best=m;}}return best;}
+let PMSG_TR={};
+function loadPMSG(code){ if(!code||code==='en'||PMSG_TR[code])return; PMSG_TR[code]='loading';
+  fetch('assets/i18n/pmsg/'+code+'.json').then(r=>r.ok?r.json():null).then(a=>{ PMSG_TR[code]=(Array.isArray(a)&&a.length===PMSG.length)?a:null; if(STEPS[idx]&&STEPS[idx].id==='spineage')renderStep(); }).catch(()=>{PMSG_TR[code]=null;}); }
+function pmsgHTML(pm){ const c=S.lang; if(c&&c!=='en'){ loadPMSG(c); const a=PMSG_TR[c]; if(Array.isArray(a)){const h=a[PMSG.indexOf(pm)]; if(h)return h;} } return pm.html; }
 
 const STEPS=[
   {id:'lang',prog:0,label:['Language',''],
@@ -638,7 +642,7 @@ const STEPS=[
         <div style="text-align:center"><span class="sa-badge" style="color:${hex};background:${hex}1f;border:1px solid ${hex}55">${pat.label}</span></div>
         <p class="sa-note">${pat.note}</p></div>
       <div class="eyebrow" style="text-align:center;margin-top:24px">Your personal spine message</div>
-      <div class="card pmsg">${pm.html}
+      <div class="card pmsg">${pmsgHTML(pm)}
         <button class="cta" id="consult" style="margin-top:16px">${icon('stetho',16)} ${act}</button>
         <div class="trust" style="border:0;margin-top:12px">${icon('shield',13)} ${APP.doctor} · Spine Severity System</div></div>
       <div class="disc">Lower-back screening & decision support only — not a diagnosis.</div>`},
@@ -671,7 +675,7 @@ const TR={"hi":{"15-min online session":"15 मिनट का ऑनलाइ�
 function langData(){ return LANGS.find(x=>x.code===(S.lang||'en'))||LANGS[0] }
 function langSelector(){ const cur=S.lang||'en'
   return `<div class="langsel">${LANGS.map(l=>`<button class="langchip ${cur===l.code?'on':''}" data-lang="${l.code}"${l.noto?` style="font-family:'${l.noto}',sans-serif"`:''}>${l.name}</button>`).join('')}</div>${cur!=='en'?`<div class="langdraft">${icon('shield',12)} ${(TR[cur]&&TR[cur]['__draft'])||'Draft translation — not yet clinically reviewed'}</div>`:''}` }
-function selectLang(code){ S.lang=code; save(); S.onboarded?renderApp(tab):renderStep() }
+function selectLang(code){ S.lang=code; save(); loadPMSG(code); S.onboarded?renderApp(tab):renderStep() }
 function openLangSheet(){ const cur=S.lang||'en'
   const el=document.createElement('div'); el.className='sheet'; el.id='langsheet'
   el.innerHTML=`<div class="sheet-card"><div class="sheet-h">${icon('globe',16,'ci')}<b>Choose language</b><button class="sheet-x" id="lsx">${icon('x',15)}</button></div><div class="langsel">${LANGS.map(l=>`<button class="langchip ${cur===l.code?'on':''}" data-lang="${l.code}"${l.noto?` style="font-family:'${l.noto}',sans-serif"`:''}>${l.name}</button>`).join('')}</div></div>`
