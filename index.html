@@ -238,6 +238,33 @@
   .pmsg .pm-q{border-left:2px solid var(--cyan);background:rgba(56,189,248,.06);margin:12px 0;padding:9px 12px;font-size:12.5px;color:#c2d6ef;font-style:italic;line-height:1.5;border-radius:0 10px 10px 0}
   .pmsg .pm-sig{font-size:12px;color:var(--mut);margin-top:14px;font-weight:600}
   .pmsg b{color:#fff}
+  .planbtns{display:flex;gap:9px;margin-top:13px}.planbtns .cta{flex:1;margin-top:0;font-size:12.5px;padding:13px 8px}
+  .pmodal{position:fixed;inset:0;z-index:130;background:rgba(2,8,20,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:14px;animation:fadeIn .2s ease}
+  .pmodal-card{width:100%;max-width:430px;max-height:88vh;display:flex;flex-direction:column;background:#06182f;border:1px solid var(--line);border-radius:18px;overflow:hidden;animation:sheetUp .3s cubic-bezier(.2,.8,.2,1)}
+  .pmodal-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 15px;border-bottom:1px solid var(--line);flex:none}
+  .pmodal-h b{font-size:14px}.pmodal-acts{display:flex;gap:8px}
+  .pmodal-pdf{display:flex;align-items:center;gap:5px;font-family:inherit;font-size:11.5px;font-weight:700;color:var(--cyan);background:rgba(56,189,248,.1);border:1px solid rgba(95,208,255,.3);border-radius:99px;padding:6px 11px;cursor:pointer}
+  .pmodal-x{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:rgba(10,28,56,.5);color:#bcd4f0;cursor:pointer;display:grid;place-items:center;flex:none}
+  .pmodal-body{overflow-y:auto;padding:4px 18px 18px;-webkit-overflow-scrolling:touch}
+  #printDoc{display:none}
+  @media print{
+    body{background:#fff!important}
+    body>*:not(#printDoc){display:none!important}
+    #printDoc{display:block!important;color:#1a1a1a;font-family:'Sora','Manrope',sans-serif;padding:26px 30px;max-width:760px;margin:0 auto}
+    #printDoc .pd-logo{font-size:22px;font-weight:800;color:#0b3a66}
+    #printDoc .pd-sub{font-size:12px;color:#555;margin-top:2px}
+    #printDoc .pd-meta{font-size:12px;color:#222;margin-top:10px;padding:8px 0;border-top:1px solid #ddd;border-bottom:1px solid #ddd}
+    #printDoc .pd-body{margin-top:14px}
+    #printDoc .pd-foot{margin-top:18px;font-size:10.5px;color:#777}
+    #printDoc .pm-h{color:#0b5a8a;font-size:14px;font-weight:700;margin:14px 0 6px}
+    #printDoc .pm-sub{color:#111;font-size:13px;font-weight:700;margin:12px 0 4px}
+    #printDoc .pmsg p{color:#222;font-size:12.5px;line-height:1.5;margin:7px 0}
+    #printDoc .pm-ul{list-style:none;padding:0;margin:7px 0}
+    #printDoc .pm-ul li{color:#222;font-size:12.5px;line-height:1.45;padding:2px 0}
+    #printDoc .pm-q{border-left:3px solid #0b5a8a;background:#f2f7fb;padding:8px 12px;margin:10px 0;font-style:italic;color:#333}
+    #printDoc .pm-sig{color:#555;margin-top:12px;font-weight:600}
+    #printDoc b{color:#000}
+  }
   .langsel{display:flex;flex-wrap:wrap;gap:7px}
   .langchip{border:1px solid var(--line);background:rgba(12,28,54,.6);color:#cfe0f5;border-radius:99px;padding:7px 13px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
   .langchip.on{background:rgba(56,189,248,.15);border-color:var(--cyan);color:var(--cyan)}
@@ -290,6 +317,7 @@
 <div id="app"></div>
 <canvas id="confetti"></canvas>
 <div class="toast" id="toast"></div>
+<div id="printDoc"></div>
 <div class="pmask" id="pmask"><div class="pwrap">
   <button class="pX" id="pX" aria-label="Close"></button>
   <div class="pscreen" id="pscreen"></div>
@@ -327,6 +355,7 @@ const IC={
   bolt:'<path d="M13 3L5 13h6l-1 8 8-11h-6z"/>',
   edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>',
   globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18"/>',
+  download:'<path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M5 19h14"/>',
   hand:'<path d="M6 11V5.5a1.5 1.5 0 013 0V10m0-4.5a1.5 1.5 0 013 0V10m0-3.5a1.5 1.5 0 013 0V11m0-1.5a1.5 1.5 0 013 0V15a6 6 0 01-6 6h-1a6 6 0 01-5.2-3L6.5 14.5a1.5 1.5 0 012.3-1.9L10 14"/>',
 }
 const icon=(n,s=20,cls='')=>`<svg class="ic ${cls}" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden>${IC[n]||''}</svg>`
@@ -481,6 +510,14 @@ let PMSG_TR={};
 function loadPMSG(code){ if(!code||code==='en'||PMSG_TR[code])return; PMSG_TR[code]='loading';
   fetch('assets/i18n/pmsg/'+code+'.json').then(r=>r.ok?r.json():null).then(a=>{ PMSG_TR[code]=(Array.isArray(a)&&a.length===PMSG.length)?a:null; if(STEPS[idx]&&STEPS[idx].id==='spineage')renderStep(); }).catch(()=>{PMSG_TR[code]=null;}); }
 function pmsgHTML(pm){ const c=S.lang; if(c&&c!=='en'){ loadPMSG(c); const a=PMSG_TR[c]; if(Array.isArray(a)){const h=a[PMSG.indexOf(pm)]; if(h)return h;} } return pm.html; }
+function openPlanModal(){ const html=pmsgHTML(pickPMSG()); const el=document.createElement('div'); el.className='pmodal'; el.id='pmModal'
+  el.innerHTML=`<div class="pmodal-card"><div class="pmodal-h"><b>Your spine plan</b><div class="pmodal-acts"><button class="pmodal-pdf" id="pmPdf">${icon('download',13)} PDF</button><button class="pmodal-x" id="pmX">${icon('x',15)}</button></div></div><div class="pmodal-body pmsg">${html}</div></div>`
+  document.body.appendChild(el)
+  el.querySelector('#pmX').onclick=()=>el.remove(); el.onclick=e=>{if(e.target===el)el.remove()}
+  el.querySelector('#pmPdf').onclick=savePdf }
+function savePdf(){ const pm=pickPMSG(),t=sssTotal(),sv=severity(t),{age,spine}=spineAgeData()
+  $('printDoc').innerHTML=`<div class="pd-head"><div class="pd-logo">BackSignal</div><div class="pd-sub">Spine Severity System · ${APP.doctor}</div><div class="pd-meta">${D.name?D.name+' · ':''}SSS Score: ${t}/11 (${sv.band}) · Spine age: ${spine} (vs age ${age}) · ${todayStr()}</div></div><div class="pd-body pmsg">${pmsgHTML(pm)}</div><div class="pd-foot">Lower-back screening & decision support only — not a diagnosis or a substitute for clinical judgment.</div>`
+  setTimeout(()=>window.print(),50) }
 
 const STEPS=[
   {id:'lang',prog:0,label:['Language',''],
@@ -641,12 +678,18 @@ const STEPS=[
         <div class="sa-track"><i class="sa-fill" style="left:${fL}%;width:${fW}%;background:linear-gradient(90deg,#5fd0ff88,${hex})"></i><span class="sa-dot you" style="left:${youP}%"></span><span class="sa-dot sp" style="left:${spP}%;background:${hex};box-shadow:0 0 10px ${hex}"></span></div>
         <div style="text-align:center"><span class="sa-badge" style="color:${hex};background:${hex}1f;border:1px solid ${hex}55">${pat.label}</span></div>
         <p class="sa-note">${pat.note}</p></div>
-      <div class="eyebrow" style="text-align:center;margin-top:24px">Your personal spine message</div>
-      <div class="card pmsg">${pmsgHTML(pm)}
-        <button class="cta" id="consult" style="margin-top:16px">${icon('stetho',16)} ${act}</button>
+      <div class="card">
+        <h3>${icon('book',15,'ci')} Your personal spine plan</h3>
+        <p class="sub" style="margin-top:8px;color:#dbe8fa">${pat.note}</p>
+        <div class="planbtns">
+          <button class="cta sec" id="readPlan">${icon('book',16)} Read full plan</button>
+          <button class="cta sec" id="savePdf">${icon('download',16)} Save as PDF</button>
+        </div>
+        <button class="cta" id="consult" style="margin-top:11px">${icon('stetho',16)} ${act}</button>
         <div class="trust" style="border:0;margin-top:12px">${icon('shield',13)} ${APP.doctor} · Spine Severity System</div></div>
       <div class="disc">Lower-back screening & decision support only — not a diagnosis.</div>`},
-    init:()=>{ const c=$('consult'); if(c)c.onclick=()=>window.open(APP.links.website,'_blank','noopener') },
+    init:()=>{ const c=$('consult'); if(c)c.onclick=()=>window.open(APP.links.website,'_blank','noopener')
+      const rp=$('readPlan'); if(rp)rp.onclick=openPlanModal; const sp=$('savePdf'); if(sp)sp.onclick=savePdf },
     cta:'Go to my dashboard →',next:'__finish'},
 ]
 
